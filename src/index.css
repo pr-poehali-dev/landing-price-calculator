@@ -208,6 +208,43 @@
     box-shadow 0.08s ease;
 }
 
+/* Secondary outline buttons */
+.btn-outline {
+  position: relative;
+  overflow: hidden;
+  transition:
+    border-color 0.25s ease,
+    color 0.25s ease,
+    background 0.25s ease,
+    transform 0.2s ease,
+    box-shadow 0.25s ease;
+}
+.btn-outline::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    120deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.12) 50%,
+    transparent 100%
+  );
+  transform: translateX(-100%);
+  transition: transform 0.5s ease;
+}
+.btn-outline:hover::after {
+  transform: translateX(100%);
+}
+.btn-outline:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(15, 44, 90, 0.12);
+}
+.btn-outline:active {
+  transform: translateY(0px) scale(0.98);
+  box-shadow: none;
+  transition: transform 0.08s ease;
+}
+
 /* Service card */
 .service-card {
   background: var(--surface);

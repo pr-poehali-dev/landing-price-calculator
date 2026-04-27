@@ -153,7 +153,7 @@ export default function ProcessSection({ onOpenModal }: { onOpenModal: () => voi
                 Полное юридическое сопровождение под ключ.
               </p>
               <button
-                className="font-body text-xs tracking-widest uppercase px-8 py-3.5 transition-all duration-200"
+                className="btn-outline font-body text-xs tracking-widest uppercase px-8 py-3.5"
                 style={{
                   border: "1px solid rgba(37,99,235,0.35)",
                   color: "var(--blue)",

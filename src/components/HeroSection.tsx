@@ -178,7 +178,7 @@ export default function HeroSection({ onScrollTo, onOpenModal }: HeroSectionProp
               Отправить документ
             </button>
             <button
-              className="px-10 py-4 font-body font-semibold text-xs tracking-widest uppercase transition-all duration-200"
+              className="btn-outline px-10 py-4 font-body font-semibold text-xs tracking-widest uppercase"
               style={{
                 border: "1px solid rgba(15,44,90,0.3)",
                 color: "var(--navy)",

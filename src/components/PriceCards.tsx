@@ -99,7 +99,7 @@ export default function PriceCards({ onScrollTo, onOpenModal }: PriceCardsProps)
             </div>
 
             <button
-              className="w-full py-3.5 font-body text-xs font-semibold tracking-widest uppercase transition-all duration-200"
+              className="btn-outline w-full py-3.5 font-body text-xs font-semibold tracking-widest uppercase"
               style={{
                 border: "1px solid var(--blue)",
                 color: "var(--blue)",
