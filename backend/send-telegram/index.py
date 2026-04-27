@@ -2,7 +2,7 @@ import json
 import os
 import base64
 import urllib.request
-import urllib.parse
+import urllib.error
 
 def handler(event: dict, context) -> dict:
     """Отправляет заявку клиента (контакты + файлы) в Telegram."""
@@ -37,17 +37,27 @@ def handler(event: dict, context) -> dict:
 
     api_base = f"https://api.telegram.org/bot{bot_token}"
 
-    req = urllib.request.Request(
-        f"{api_base}/sendMessage",
-        data=json.dumps({
-            'chat_id': chat_id,
-            'text': text,
-            'parse_mode': 'Markdown'
-        }).encode(),
-        headers={'Content-Type': 'application/json'},
-        method='POST'
-    )
-    urllib.request.urlopen(req)
+    try:
+        req = urllib.request.Request(
+            f"{api_base}/sendMessage",
+            data=json.dumps({
+                'chat_id': chat_id,
+                'text': text,
+                'parse_mode': 'Markdown'
+            }).encode(),
+            headers={'Content-Type': 'application/json'},
+            method='POST'
+        )
+        resp = urllib.request.urlopen(req)
+        print("sendMessage response:", resp.read().decode())
+    except urllib.error.HTTPError as e:
+        err = e.read().decode()
+        print("sendMessage error:", err)
+        return {
+            'statusCode': 500,
+            'headers': {'Access-Control-Allow-Origin': '*'},
+            'body': json.dumps({'ok': False, 'error': err})
+        }
 
     for f in files:
         file_data = base64.b64decode(f['data'])
@@ -64,13 +74,23 @@ def handler(event: dict, context) -> dict:
             f'Content-Type: {mime}\r\n\r\n'
         ).encode() + file_data + f'\r\n--{boundary}--\r\n'.encode()
 
-        doc_req = urllib.request.Request(
-            f"{api_base}/sendDocument",
-            data=body_parts,
-            headers={'Content-Type': f'multipart/form-data; boundary={boundary}'},
-            method='POST'
-        )
-        urllib.request.urlopen(doc_req)
+        try:
+            doc_req = urllib.request.Request(
+                f"{api_base}/sendDocument",
+                data=body_parts,
+                headers={'Content-Type': f'multipart/form-data; boundary={boundary}'},
+                method='POST'
+            )
+            dresp = urllib.request.urlopen(doc_req)
+            print("sendDocument response:", dresp.read().decode())
+        except urllib.error.HTTPError as e:
+            err = e.read().decode()
+            print("sendDocument error:", err)
+            return {
+                'statusCode': 500,
+                'headers': {'Access-Control-Allow-Origin': '*'},
+                'body': json.dumps({'ok': False, 'error': err})
+            }
 
     return {
         'statusCode': 200,
