@@ -25,6 +25,7 @@ def handler(event: dict, context) -> dict:
     name = body.get('name', '').strip()
     phone = body.get('phone', '').strip()
     email = body.get('email', '').strip()
+    message = body.get('message', '').strip()
     files = body.get('files', [])
 
     text = (
@@ -32,7 +33,8 @@ def handler(event: dict, context) -> dict:
         f"👤 Имя: {name}\n"
         f"📞 Телефон: {phone}\n"
         f"✉️ Email: {email}\n"
-        f"📎 Файлов: {len(files)}"
+        + (f"💬 Сообщение: {message}\n" if message else "")
+        + f"📎 Файлов: {len(files)}"
     )
 
     api_base = f"https://api.telegram.org/bot{bot_token}"

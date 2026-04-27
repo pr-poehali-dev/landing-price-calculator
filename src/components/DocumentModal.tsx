@@ -32,6 +32,7 @@ export default function DocumentModal({ open, onClose }: DocumentModalProps) {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
+  const [message, setMessage] = useState("");
   const [files, setFiles] = useState<FileItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -70,7 +71,7 @@ export default function DocumentModal({ open, onClose }: DocumentModalProps) {
     setProgress(0);
 
     try {
-      const body = JSON.stringify({ name, phone, email, files });
+      const body = JSON.stringify({ name, phone, email, message, files });
       const totalBytes = new Blob([body]).size;
 
       await new Promise<void>((resolve, reject) => {
@@ -98,7 +99,7 @@ export default function DocumentModal({ open, onClose }: DocumentModalProps) {
       });
 
       toast.success("Заявка отправлена! Мы свяжемся с вами в ближайшее время.");
-      setName(""); setPhone(""); setEmail(""); setFiles([]);
+      setName(""); setPhone(""); setEmail(""); setMessage(""); setFiles([]);
       onClose();
     } catch {
       toast.error("Ошибка отправки. Попробуйте ещё раз.");
@@ -165,6 +166,16 @@ export default function DocumentModal({ open, onClose }: DocumentModalProps) {
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            disabled={loading}
+          />
+
+          <textarea
+            className={inputClass}
+            style={{ ...inputStyle, resize: "none" }}
+            placeholder="Опишите вашу ситуацию или вопрос"
+            rows={4}
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
             disabled={loading}
           />
 
