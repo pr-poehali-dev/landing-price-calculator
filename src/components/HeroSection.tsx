@@ -29,7 +29,7 @@ export default function HeroSection({ onScrollTo, onOpenModal }: HeroSectionProp
           <img
             src="https://cdn.poehali.dev/projects/ec09f91e-5c19-456f-a8f1-620fce7cd143/bucket/f43bee61-8d4f-4628-9014-63453c99021f.png"
             alt="Legis24"
-            style={{ height: 36, width: "auto" }}
+            style={{ height: 48, width: "auto" }}
           />
         </div>
 
@@ -157,6 +157,7 @@ export default function HeroSection({ onScrollTo, onOpenModal }: HeroSectionProp
             >
               24 часа
             </span>
+
           </h1>
 
           <p
