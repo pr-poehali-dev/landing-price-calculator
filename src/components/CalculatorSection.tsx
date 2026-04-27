@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useScrollReveal } from "@/hooks/useScrollReveal";
 
 function calcIS(amount: number): number {
   if (amount <= 0) return 0;
@@ -168,8 +169,9 @@ function Calculator({ onOpenModal }: { onOpenModal: () => void }) {
 }
 
 export default function CalculatorSection({ onOpenModal }: { onOpenModal: () => void }) {
+  const ref = useScrollReveal();
   return (
-    <section id="calculator" className="py-24 px-6 md:px-10" style={{ background: "var(--bg)" }}>
+    <section ref={ref as React.Ref<HTMLElement>} id="calculator" className="reveal py-24 px-6 md:px-10" style={{ background: "var(--bg)" }}>
       <div className="max-w-6xl mx-auto">
         <div className="mb-10">
           <p

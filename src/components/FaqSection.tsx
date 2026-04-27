@@ -1,5 +1,6 @@
 import { useState } from "react";
 import Icon from "@/components/ui/icon";
+import { useScrollReveal } from "@/hooks/useScrollReveal";
 
 // ─── DATA ────────────────────────────────────────────────────────────────────
 
@@ -64,10 +65,12 @@ function FaqItem({ q, a }: { q: string; a: string }) {
 // ─── FAQ SECTION ─────────────────────────────────────────────────────────────
 
 export default function FaqSection({ onOpenModal }: { onOpenModal: () => void }) {
+  const ref1 = useScrollReveal();
+  const ref2 = useScrollReveal();
   return (
     <>
       {/* ── FAQ ─────────────────────────────────────────────────────────── */}
-      <section id="faq" className="py-24 px-6 md:px-10" style={{ background: "var(--bg-white)" }}>
+      <section ref={ref1 as React.Ref<HTMLElement>} id="faq" className="reveal py-24 px-6 md:px-10" style={{ background: "var(--bg-white)" }}>
         <div className="max-w-6xl mx-auto">
           <div className="grid lg:grid-cols-3 gap-16">
             <div>
@@ -96,7 +99,7 @@ export default function FaqSection({ onOpenModal }: { onOpenModal: () => void })
       </section>
 
       {/* ── FINAL CTA ───────────────────────────────────────────────────── */}
-      <section className="py-20 px-6 md:px-10 pb-28 md:pb-20" style={{ background: "var(--bg)" }}>
+      <section ref={ref2 as React.Ref<HTMLElement>} className="reveal py-20 px-6 md:px-10 pb-28 md:pb-20" style={{ background: "var(--bg)" }}>
         <div className="max-w-6xl mx-auto">
           <div
             className="p-12 lg:p-16 text-center relative overflow-hidden"

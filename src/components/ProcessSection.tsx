@@ -1,10 +1,14 @@
 import Icon from "@/components/ui/icon";
+import { useScrollReveal } from "@/hooks/useScrollReveal";
 
 export default function ProcessSection({ onOpenModal }: { onOpenModal: () => void }) {
+  const ref1 = useScrollReveal();
+  const ref2 = useScrollReveal();
+  const ref3 = useScrollReveal();
   return (
     <>
       {/* ── HOW WE WORK ─────────────────────────────────────────────────── */}
-      <section className="py-24 px-6 md:px-10" style={{ background: "var(--bg)" }}>
+      <section ref={ref1 as React.Ref<HTMLElement>} className="reveal py-24 px-6 md:px-10" style={{ background: "var(--bg)" }}>
         <div className="max-w-6xl mx-auto">
           <div className="mb-12">
             <p
@@ -69,7 +73,7 @@ export default function ProcessSection({ onOpenModal }: { onOpenModal: () => voi
       </section>
 
       {/* ── RISK BLOCK ──────────────────────────────────────────────────── */}
-      <section className="py-20 px-6 md:px-10" style={{ background: "var(--bg-white)" }}>
+      <section ref={ref2 as React.Ref<HTMLElement>} className="reveal py-20 px-6 md:px-10" style={{ background: "var(--bg-white)" }}>
         <div className="max-w-6xl mx-auto">
           <div
             className="p-10 lg:p-14 relative overflow-hidden"
@@ -131,7 +135,7 @@ export default function ProcessSection({ onOpenModal }: { onOpenModal: () => voi
       </section>
 
       {/* ── IP BLOCK ────────────────────────────────────────────────────── */}
-      <section className="py-20 px-6 md:px-10" style={{ background: "var(--bg)" }}>
+      <section ref={ref3 as React.Ref<HTMLElement>} className="reveal py-20 px-6 md:px-10" style={{ background: "var(--bg)" }}>
         <div className="max-w-6xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>

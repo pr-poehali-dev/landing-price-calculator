@@ -1,8 +1,10 @@
 import Icon from "@/components/ui/icon";
+import { useScrollReveal } from "@/hooks/useScrollReveal";
 
 export default function ServicesGrid({ onOpenModal }: { onOpenModal: () => void }) {
+  const ref = useScrollReveal();
   return (
-    <section id="services" className="py-24 px-6 md:px-10" style={{ background: "var(--bg-white)" }}>
+    <section ref={ref as React.Ref<HTMLElement>} id="services" className="reveal py-24 px-6 md:px-10" style={{ background: "var(--bg-white)" }}>
       <div className="max-w-6xl mx-auto">
         <div className="mb-12">
           <p

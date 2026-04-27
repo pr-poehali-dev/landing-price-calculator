@@ -1,4 +1,5 @@
 import Icon from "@/components/ui/icon";
+import { useScrollReveal } from "@/hooks/useScrollReveal";
 
 interface PriceCardsProps {
   onScrollTo: (id: string) => void;
@@ -6,8 +7,9 @@ interface PriceCardsProps {
 }
 
 export default function PriceCards({ onScrollTo, onOpenModal }: PriceCardsProps) {
+  const ref = useScrollReveal();
   return (
-    <section id="price" className="py-24 px-6 md:px-10" style={{ background: "var(--bg-white)" }}>
+    <section ref={ref as React.Ref<HTMLElement>} id="price" className="reveal py-24 px-6 md:px-10" style={{ background: "var(--bg-white)" }}>
       <div className="max-w-6xl mx-auto">
         <div className="mb-12">
           <p
