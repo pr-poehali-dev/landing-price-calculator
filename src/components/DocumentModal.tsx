@@ -14,11 +14,18 @@ interface FileItem {
   name: string;
   type: string;
   data: string;
+  size: number;
 }
 
 interface DocumentModalProps {
   open: boolean;
   onClose: () => void;
+}
+
+function formatSize(bytes: number) {
+  if (bytes < 1024) return `${bytes} Б`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} КБ`;
+  return `${(bytes / 1024 / 1024).toFixed(1)} МБ`;
 }
 
 export default function DocumentModal({ open, onClose }: DocumentModalProps) {
@@ -27,6 +34,7 @@ export default function DocumentModal({ open, onClose }: DocumentModalProps) {
   const [email, setEmail] = useState("");
   const [files, setFiles] = useState<FileItem[]>([]);
   const [loading, setLoading] = useState(false);
+  const [progress, setProgress] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const handleFiles = (selected: FileList | null) => {
@@ -37,7 +45,7 @@ export default function DocumentModal({ open, onClose }: DocumentModalProps) {
         const base64 = (e.target?.result as string).split(",")[1];
         setFiles((prev) => [
           ...prev,
-          { name: file.name, type: file.type, data: base64 },
+          { name: file.name, type: file.type, data: base64, size: file.size },
         ]);
       };
       reader.readAsDataURL(file);
@@ -59,13 +67,36 @@ export default function DocumentModal({ open, onClose }: DocumentModalProps) {
       return;
     }
     setLoading(true);
+    setProgress(0);
+
     try {
-      const res = await fetch(API_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, phone, email, files }),
+      const body = JSON.stringify({ name, phone, email, files });
+      const totalBytes = new Blob([body]).size;
+
+      await new Promise<void>((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open("POST", API_URL);
+        xhr.setRequestHeader("Content-Type", "application/json");
+
+        xhr.upload.onprogress = (event) => {
+          if (event.lengthComputable) {
+            setProgress(Math.round((event.loaded / event.total) * 90));
+          }
+        };
+
+        xhr.onload = () => {
+          setProgress(100);
+          if (xhr.status >= 200 && xhr.status < 300) {
+            resolve();
+          } else {
+            reject(new Error(xhr.responseText));
+          }
+        };
+
+        xhr.onerror = () => reject(new Error("Network error"));
+        xhr.send(body);
       });
-      if (!res.ok) throw new Error();
+
       toast.success("Заявка отправлена! Мы свяжемся с вами в ближайшее время.");
       setName(""); setPhone(""); setEmail(""); setFiles([]);
       onClose();
@@ -73,6 +104,7 @@ export default function DocumentModal({ open, onClose }: DocumentModalProps) {
       toast.error("Ошибка отправки. Попробуйте ещё раз.");
     } finally {
       setLoading(false);
+      setProgress(0);
     }
   };
 
@@ -115,6 +147,7 @@ export default function DocumentModal({ open, onClose }: DocumentModalProps) {
             placeholder="Ваше имя"
             value={name}
             onChange={(e) => setName(e.target.value)}
+            disabled={loading}
           />
           <input
             className={inputClass}
@@ -123,6 +156,7 @@ export default function DocumentModal({ open, onClose }: DocumentModalProps) {
             type="tel"
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
+            disabled={loading}
           />
           <input
             className={inputClass}
@@ -131,6 +165,7 @@ export default function DocumentModal({ open, onClose }: DocumentModalProps) {
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            disabled={loading}
           />
 
           <div
@@ -138,6 +173,7 @@ export default function DocumentModal({ open, onClose }: DocumentModalProps) {
             style={{
               border: "1px dashed rgba(255,255,255,0.2)",
               background: "rgba(255,255,255,0.02)",
+              pointerEvents: loading ? "none" : "auto",
             }}
             onClick={() => inputRef.current?.click()}
             onDrop={handleDrop}
@@ -170,17 +206,43 @@ export default function DocumentModal({ open, onClose }: DocumentModalProps) {
                   <div className="flex items-center gap-2 overflow-hidden">
                     <Icon name="FileText" size={14} style={{ color: "var(--red)", flexShrink: 0 }} />
                     <span className="truncate">{f.name}</span>
+                    <span style={{ color: "rgba(255,255,255,0.3)", flexShrink: 0 }}>
+                      {formatSize(f.size)}
+                    </span>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => removeFile(i)}
-                    style={{ color: "rgba(255,255,255,0.3)" }}
-                    className="hover:text-white transition-colors ml-2 flex-shrink-0"
-                  >
-                    <Icon name="X" size={14} />
-                  </button>
+                  {!loading && (
+                    <button
+                      type="button"
+                      onClick={() => removeFile(i)}
+                      style={{ color: "rgba(255,255,255,0.3)" }}
+                      className="hover:text-white transition-colors ml-2 flex-shrink-0"
+                    >
+                      <Icon name="X" size={14} />
+                    </button>
+                  )}
                 </div>
               ))}
+            </div>
+          )}
+
+          {loading && (
+            <div className="space-y-2">
+              <div className="flex justify-between text-xs font-body" style={{ color: "rgba(255,255,255,0.4)" }}>
+                <span>{progress < 100 ? "Загружаем файлы..." : "Обрабатываем..."}</span>
+                <span>{progress < 100 ? `${progress}%` : ""}</span>
+              </div>
+              <div
+                className="w-full rounded-full overflow-hidden"
+                style={{ height: 3, background: "rgba(255,255,255,0.08)" }}
+              >
+                <div
+                  className="h-full transition-all duration-300"
+                  style={{
+                    width: `${progress}%`,
+                    background: "var(--red)",
+                  }}
+                />
+              </div>
             </div>
           )}
 
