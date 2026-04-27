@@ -644,23 +644,7 @@ const Index = () => {
             </div>
           </div>
 
-          {/* Estimate CTA */}
-          <div
-            className="mt-8 p-6 flex flex-col md:flex-row items-center justify-between gap-4"
-            style={{ background: "rgba(239,68,68,0.04)", border: "1px solid rgba(239,68,68,0.18)" }}
-          >
-            <div>
-              <p className="font-display text-lg" style={{ color: "var(--mist)" }}>
-                Точная стоимость зависит от ситуации
-              </p>
-              <p className="font-body text-sm mt-1" style={{ color: "var(--mist)", opacity: 0.45 }}>
-                Пришлите сумму иска или документ — рассчитаем за 1 минуту
-              </p>
-            </div>
-            <button className="btn-gold flex-shrink-0 px-8 py-3.5 text-xs whitespace-nowrap">
-              Получить расчёт
-            </button>
-          </div>
+
         </div>
       </section>
 
