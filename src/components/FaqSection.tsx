@@ -167,9 +167,13 @@ export default function FaqSection({ onOpenModal }: { onOpenModal: () => void })
             © 2024 Legis24. Адвокатское бюро. Все права защищены.
           </p>
           <div className="flex gap-5 font-body text-xs" style={{ color: "var(--text-muted)" }}>
-            <span>Политика конфиденциальности</span>
-            <span>·</span>
-            <span>Соглашение</span>
+            <a
+              href="/privacy"
+              className="hover:opacity-70 transition-opacity underline"
+              style={{ color: "var(--text-muted)" }}
+            >
+              Политика конфиденциальности
+            </a>
           </div>
         </div>
       </footer>

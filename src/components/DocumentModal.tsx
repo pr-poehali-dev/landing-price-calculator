@@ -34,6 +34,7 @@ export default function DocumentModal({ open, onClose }: DocumentModalProps) {
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
   const [files, setFiles] = useState<FileItem[]>([]);
+  const [consent, setConsent] = useState(false);
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -65,6 +66,10 @@ export default function DocumentModal({ open, onClose }: DocumentModalProps) {
     e.preventDefault();
     if (!name || !phone || !email) {
       toast.error("Заполните все поля");
+      return;
+    }
+    if (!consent) {
+      toast.error("Необходимо согласие на обработку персональных данных");
       return;
     }
     setLoading(true);
@@ -257,9 +262,33 @@ export default function DocumentModal({ open, onClose }: DocumentModalProps) {
             </div>
           )}
 
+          <label className="flex items-start gap-3 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={consent}
+              onChange={(e) => setConsent(e.target.checked)}
+              disabled={loading}
+              className="mt-0.5 flex-shrink-0 accent-blue-600"
+              style={{ width: 16, height: 16 }}
+            />
+            <span className="text-xs font-body leading-relaxed" style={{ color: "var(--text-muted)" }}>
+              Я даю согласие на обработку персональных данных в соответствии с{" "}
+              <a
+                href="/privacy"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline hover:opacity-70 transition-opacity"
+                style={{ color: "var(--blue)" }}
+              >
+                Политикой конфиденциальности
+              </a>
+              {" "}согласно ФЗ-152
+            </span>
+          </label>
+
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || !consent}
             className="btn-gold w-full py-3 text-sm disabled:opacity-50"
           >
             {loading ? "Отправляем..." : "Отправить заявку"}
