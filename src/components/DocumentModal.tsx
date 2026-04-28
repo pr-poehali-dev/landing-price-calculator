@@ -120,8 +120,8 @@ export default function DocumentModal({ open, onClose }: DocumentModalProps) {
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
       <DialogContent
-        className="max-w-md w-full p-0 overflow-hidden border-0"
-        style={{ background: "rgba(255,255,255,0.92)", backdropFilter: "blur(16px)", borderRadius: 8, border: "1px solid var(--border-c)" }}
+        className="max-w-md w-full p-0 border-0 flex flex-col"
+        style={{ background: "rgba(255,255,255,0.92)", backdropFilter: "blur(16px)", borderRadius: 8, border: "1px solid var(--border-c)", maxHeight: "90dvh" }}
       >
         <DialogHeader className="px-8 pt-8 pb-0">
           <div className="flex items-center gap-3 mb-1">
@@ -141,7 +141,7 @@ export default function DocumentModal({ open, onClose }: DocumentModalProps) {
           </DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="px-8 pb-8 pt-6 space-y-4">
+        <form onSubmit={handleSubmit} className="px-8 pb-8 pt-6 space-y-4 overflow-y-auto flex-1">
           <input
             className={inputClass}
             style={inputStyle}

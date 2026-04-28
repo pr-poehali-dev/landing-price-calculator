@@ -138,12 +138,13 @@ export default function HeroSection({ onScrollTo, onOpenModal }: HeroSectionProp
             <span
               className="font-display"
               style={{
-                fontSize: "clamp(5rem, 13vw, 11rem)",
+                fontSize: "clamp(3.8rem, 13vw, 11rem)",
                 color: "var(--blue)",
                 fontStyle: "italic",
                 display: "block",
                 lineHeight: 0.95,
                 fontWeight: 700,
+                whiteSpace: "nowrap",
               }}
             >
               24 часа
