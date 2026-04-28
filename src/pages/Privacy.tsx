@@ -40,10 +40,14 @@ export default function Privacy() {
 
           <section>
             <h2 className="font-display text-lg mb-3" style={{ color: "var(--navy)" }}>2. Оператор персональных данных</h2>
-            <p>
-              Оператором персональных данных является Адвокатское бюро «Legis24».<br />
-              Контактный e-mail: <a href="mailto:info@legis24.ru" style={{ color: "var(--blue)" }}>info@legis24.ru</a>
-            </p>
+            <ul className="space-y-1 list-none">
+              <li><span style={{ color: "var(--text-muted)" }}>Полное наименование:</span> Непубличное акционерное общество «ИВА ПЛЮС»</li>
+              <li><span style={{ color: "var(--text-muted)" }}>ИНН / КПП:</span> 6678116490 / 667901001</li>
+              <li><span style={{ color: "var(--text-muted)" }}>ОГРН:</span> 1216600075251 (выдан 16.12.2021)</li>
+              <li><span style={{ color: "var(--text-muted)" }}>Юридический адрес:</span> 620024, Свердловская область, г. Екатеринбург, ул. Бисертская, д. 29, офис 14/6</li>
+              <li><span style={{ color: "var(--text-muted)" }}>Генеральный директор:</span> Тихомирова Екатерина Викторовна</li>
+              <li><span style={{ color: "var(--text-muted)" }}>Сайт:</span> advokat-vsem.ru</li>
+            </ul>
           </section>
 
           <section>
