@@ -159,7 +159,7 @@ export default function FaqSection({ onOpenModal }: { onOpenModal: () => void })
       >
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-5">
           <img
-            src="https://cdn.poehali.dev/projects/ec09f91e-5c19-456f-a8f1-620fce7cd143/bucket/0d841fe0-d0b2-4ea0-a768-cbe3dfe8d052.jpeg"
+            src="https://cdn.poehali.dev/projects/ec09f91e-5c19-456f-a8f1-620fce7cd143/bucket/269a5714-3147-42ee-9d3a-43b1f31ad3e8.jpeg"
             alt="Legis24"
             style={{ height: 40, width: "auto", mixBlendMode: "multiply" }}
           />
