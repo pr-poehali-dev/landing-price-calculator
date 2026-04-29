@@ -41,8 +41,8 @@ def handler(event: dict, context) -> dict:
     if not session_id or not text:
         return {'statusCode': 400, 'headers': CORS, 'body': json.dumps({'ok': False, 'error': 'missing fields'})}
 
-    bot_token = os.environ['TELEGRAM_BOT_TOKEN']
-    support_chat_id = os.environ['TELEGRAM_CHAT_ID']
+    bot_token = os.environ['INTELLECT_BOT_TOKEN']
+    support_chat_id = os.environ['INTELLECT_CHAT_ID']
 
     db = get_db()
     cur = db.cursor()
