@@ -1,0 +1,11 @@
+{
+  "tests": [
+    {
+      "name": "Send message",
+      "method": "POST",
+      "path": "/",
+      "body": {"session_id": "test-session-001", "text": "Проверка чата"},
+      "expectedStatus": 200
+    }
+  ]
+}

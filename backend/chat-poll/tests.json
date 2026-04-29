@@ -1,0 +1,10 @@
+{
+  "tests": [
+    {
+      "name": "Poll messages for session",
+      "method": "GET",
+      "path": "/?session_id=test-session-001&since_id=0",
+      "expectedStatus": 200
+    }
+  ]
+}

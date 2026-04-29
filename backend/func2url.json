@@ -1,3 +1,5 @@
 {
+  "chat-send": "https://functions.poehali.dev/5208ef17-79d8-4c21-9919-b3970c52b1e6",
+  "chat-poll": "https://functions.poehali.dev/f8b3be3c-4e52-480e-a344-9a380fd1fd0c",
   "send-telegram": "https://functions.poehali.dev/12e937a9-0e91-4d66-bb5d-c778c426b9ff"
 }
