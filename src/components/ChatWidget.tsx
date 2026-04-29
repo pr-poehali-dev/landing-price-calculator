@@ -134,7 +134,7 @@ export default function ChatWidget() {
       <button
         onClick={() => setOpen((v) => !v)}
         aria-label="Открыть чат"
-        className="fixed bottom-24 right-5 md:bottom-8 md:right-8 z-50 w-14 h-14 rounded-full shadow-lg flex items-center justify-center transition-transform hover:scale-105 active:scale-95"
+        className="fixed bottom-20 right-4 md:bottom-8 md:right-8 z-50 w-12 h-12 rounded-full shadow-lg flex items-center justify-center transition-transform hover:scale-105 active:scale-95"
         style={{ background: "var(--blue)" }}
       >
         {open ? (
@@ -153,10 +153,13 @@ export default function ChatWidget() {
       {/* Окно чата */}
       {open && (
         <div
-          className="fixed bottom-44 right-5 md:bottom-28 md:right-8 z-50 flex flex-col"
+          className="fixed z-50 flex flex-col"
           style={{
-            width: "min(370px, calc(100vw - 24px))",
-            height: "min(520px, calc(100vh - 160px))",
+            bottom: 80,
+            right: 16,
+            width: "calc(100vw - 32px)",
+            maxWidth: 370,
+            height: "min(480px, calc(100dvh - 120px))",
             background: "var(--bg-white)",
             border: "1px solid var(--border-c)",
             borderRadius: 16,
