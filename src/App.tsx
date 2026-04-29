@@ -10,6 +10,7 @@ import Terms from "./pages/Terms";
 import Offer from "./pages/Offer";
 import NotFound from "./pages/NotFound";
 import CookieBanner from "./components/CookieBanner";
+import ChatWidget from "./components/ChatWidget";
 
 const queryClient = new QueryClient();
 
@@ -19,6 +20,7 @@ const App = () => (
       <Toaster />
       <Sonner />
       <CookieBanner />
+      <ChatWidget />
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
