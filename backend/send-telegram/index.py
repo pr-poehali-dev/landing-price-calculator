@@ -3,9 +3,17 @@ import os
 import base64
 import urllib.request
 import urllib.error
+import psycopg2
+
+SCHEMA = os.environ.get("MAIN_DB_SCHEMA", "t_p60076574_landing_price_calcul")
+
+
+def get_conn():
+    return psycopg2.connect(os.environ["DATABASE_URL"])
+
 
 def handler(event: dict, context) -> dict:
-    """Отправляет заявку клиента (контакты + файлы) в Telegram."""
+    """Отправляет заявку клиента в Telegram и сохраняет в базу данных."""
     if event.get('httpMethod') == 'OPTIONS':
         return {
             'statusCode': 200,
@@ -25,14 +33,40 @@ def handler(event: dict, context) -> dict:
     name = body.get('name', '').strip()
     phone = body.get('phone', '').strip()
     email = body.get('email', '').strip()
+    inn = body.get('inn', '').strip()
+    inn_info = body.get('innInfo') or {}
+    inn_company = inn_info.get('name', '') if inn_info else ''
     message = body.get('message', '').strip()
     files = body.get('files', [])
+
+    # Сохраняем заявку в БД
+    try:
+        conn = get_conn()
+        cur = conn.cursor()
+        cur.execute(
+            f"""INSERT INTO {SCHEMA}.form_submissions
+                (name, phone, email, inn, inn_company, message, files_count)
+                VALUES (%s, %s, %s, %s, %s, %s, %s)""",
+            (name, phone, email, inn or None, inn_company or None, message or None, len(files)),
+        )
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        print("DB error:", e)
+
+    inn_line = ""
+    if inn:
+        inn_line = f"🏢 ИНН: {inn}"
+        if inn_company:
+            inn_line += f" ({inn_company})"
+        inn_line += "\n"
 
     text = (
         f"📄 *Новая заявка с сайта*\n\n"
         f"👤 Имя: {name}\n"
         f"📞 Телефон: {phone}\n"
         f"✉️ Email: {email}\n"
+        + inn_line
         + (f"💬 Сообщение: {message}\n" if message else "")
         + f"📎 Файлов: {len(files)}"
     )
@@ -88,11 +122,6 @@ def handler(event: dict, context) -> dict:
         except urllib.error.HTTPError as e:
             err = e.read().decode()
             print("sendDocument error:", err)
-            return {
-                'statusCode': 500,
-                'headers': {'Access-Control-Allow-Origin': '*'},
-                'body': json.dumps({'ok': False, 'error': err})
-            }
 
     return {
         'statusCode': 200,
