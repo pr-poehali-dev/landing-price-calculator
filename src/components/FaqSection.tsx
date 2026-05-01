@@ -191,7 +191,7 @@ export default function FaqSection({ onOpenModal }: { onOpenModal: () => void })
               Публичная оферта
             </a>
             <Link
-              to="/cabinet"
+              to="/login"
               className="flex items-center gap-1 font-semibold transition-opacity hover:opacity-70"
               style={{ color: "var(--blue)" }}
             >
