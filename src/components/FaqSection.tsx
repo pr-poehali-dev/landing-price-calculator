@@ -142,13 +142,16 @@ export default function FaqSection({ onOpenModal }: { onOpenModal: () => void })
                 <Icon name="MessageCircle" size={16} />
                 WhatsApp
               </button>
-              <button
+              <a
+                href="https://t.me/intelectpro_bot"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="flex items-center justify-center gap-3 px-10 py-4 font-body font-semibold text-xs tracking-widest uppercase transition-all duration-200"
                 style={{ background: "#229ED9", color: "#fff", borderRadius: 6 }}
               >
                 <Icon name="Send" size={16} />
                 Telegram
-              </button>
+              </a>
             </div>
           </div>
         </div>
