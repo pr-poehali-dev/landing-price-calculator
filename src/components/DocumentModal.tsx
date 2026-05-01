@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
 import {
   Dialog,
   DialogContent,
@@ -8,147 +8,21 @@ import {
 import Icon from "@/components/ui/icon";
 import { toast } from "sonner";
 
-const API_URL = "https://functions.poehali.dev/12e937a9-0e91-4d66-bb5d-c778c426b9ff";
-const DADATA_TOKEN = import.meta.env.VITE_DADATA_API_KEY || "";
+import {
+  FileItem, FieldError, InnInfo,
+  formatPhone, validateName, validatePhone, validateEmail, validateInn,
+  INPUT_BASE,
+} from "./modal/types";
+import { useDadata } from "./modal/useDadata";
+import SuggestDropdown from "./modal/SuggestDropdown";
+import InnField from "./modal/InnField";
+import FileUpload from "./modal/FileUpload";
 
-interface FileItem {
-  name: string;
-  type: string;
-  data: string;
-  size: number;
-}
+const API_URL = "https://functions.poehali.dev/12e937a9-0e91-4d66-bb5d-c778c426b9ff";
 
 interface DocumentModalProps {
   open: boolean;
   onClose: () => void;
-}
-
-interface FieldError {
-  name?: string;
-  phone?: string;
-  email?: string;
-  inn?: string;
-}
-
-interface DadataSuggestion {
-  value: string;
-  data?: Record<string, unknown>;
-}
-
-interface InnInfo {
-  name: string;
-  type: string;
-  kpp?: string;
-  ogrn?: string;
-  address?: string;
-}
-
-function formatSize(bytes: number) {
-  if (bytes < 1024) return `${bytes} Б`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} КБ`;
-  return `${(bytes / 1024 / 1024).toFixed(1)} МБ`;
-}
-
-function formatPhone(raw: string): string {
-  const digits = raw.replace(/\D/g, "");
-  if (!digits) return "";
-  const d = digits.startsWith("8") ? "7" + digits.slice(1) : digits.startsWith("7") ? digits : "7" + digits;
-  const n = d.slice(0, 11);
-  let result = "+7";
-  if (n.length > 1) result += " (" + n.slice(1, 4);
-  if (n.length >= 4) result += ") " + n.slice(4, 7);
-  if (n.length >= 7) result += "-" + n.slice(7, 9);
-  if (n.length >= 9) result += "-" + n.slice(9, 11);
-  return result;
-}
-
-function validateName(v: string): string | undefined {
-  if (!v.trim()) return "Введите имя";
-  if (v.trim().length < 2) return "Имя слишком короткое";
-  return undefined;
-}
-
-function validatePhone(v: string): string | undefined {
-  const digits = v.replace(/\D/g, "");
-  if (!digits) return "Введите телефон";
-  if (digits.length < 11) return "Неполный номер телефона";
-  return undefined;
-}
-
-function validateEmail(v: string): string | undefined {
-  if (!v.trim()) return "Введите email";
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim())) return "Некорректный email";
-  return undefined;
-}
-
-function validateInn(v: string): string | undefined {
-  if (!v.trim()) return undefined;
-  const digits = v.replace(/\D/g, "");
-  if (digits.length !== 10 && digits.length !== 12) return "ИНН должен содержать 10 или 12 цифр";
-  return undefined;
-}
-
-function useDadata(type: "fio" | "email", query: string, enabled: boolean) {
-  const [suggestions, setSuggestions] = useState<DadataSuggestion[]>([]);
-
-  useEffect(() => {
-    if (!enabled || !DADATA_TOKEN || query.length < 2) {
-      setSuggestions([]);
-      return;
-    }
-    const url =
-      type === "fio"
-        ? "https://suggestions.dadata.ru/suggestions/api/4_1/rs/suggest/fio"
-        : "https://suggestions.dadata.ru/suggestions/api/4_1/rs/suggest/email";
-
-    const timer = setTimeout(() => {
-      fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Token ${DADATA_TOKEN}` },
-        body: JSON.stringify({ query, count: 5 }),
-      })
-        .then((r) => r.json())
-        .then((data) => setSuggestions(data.suggestions || []))
-        .catch(() => setSuggestions([]));
-    }, 250);
-
-    return () => clearTimeout(timer);
-  }, [query, type, enabled]);
-
-  return { suggestions, clear: () => setSuggestions([]) };
-}
-
-interface SuggestDropdownProps {
-  suggestions: DadataSuggestion[];
-  onSelect: (v: string) => void;
-}
-
-function SuggestDropdown({ suggestions, onSelect }: SuggestDropdownProps) {
-  if (!suggestions.length) return null;
-  return (
-    <ul
-      className="absolute left-0 right-0 z-50 rounded-lg overflow-hidden text-sm"
-      style={{
-        background: "#fff",
-        border: "1px solid var(--border-c)",
-        boxShadow: "0 8px 24px rgba(0,0,0,0.10)",
-        top: "calc(100% + 4px)",
-      }}
-    >
-      {suggestions.map((s, i) => (
-        <li
-          key={i}
-          className="px-4 py-2.5 cursor-pointer transition-colors"
-          style={{ color: "var(--text)", borderBottom: i < suggestions.length - 1 ? "1px solid var(--border-c)" : "none" }}
-          onMouseDown={(e) => { e.preventDefault(); onSelect(s.value); }}
-          onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.background = "var(--bg)")}
-          onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.background = "#fff")}
-        >
-          {s.value}
-        </li>
-      ))}
-    </ul>
-  );
 }
 
 export default function DocumentModal({ open, onClose }: DocumentModalProps) {
@@ -167,46 +41,9 @@ export default function DocumentModal({ open, onClose }: DocumentModalProps) {
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [nameFocus, setNameFocus] = useState(false);
   const [emailFocus, setEmailFocus] = useState(false);
-  const inputRef = useRef<HTMLInputElement>(null);
 
   const nameSuggest = useDadata("fio", name, nameFocus);
   const emailSuggest = useDadata("email", email, emailFocus);
-
-  const checkInn = useCallback(async (value: string) => {
-    const digits = value.replace(/\D/g, "");
-    if (!DADATA_TOKEN || (digits.length !== 10 && digits.length !== 12)) {
-      setInnInfo(null);
-      return;
-    }
-    setInnChecking(true);
-    setInnInfo(null);
-    try {
-      const res = await fetch("https://suggestions.dadata.ru/suggestions/api/4_1/rs/findById/party", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Token ${DADATA_TOKEN}` },
-        body: JSON.stringify({ query: digits, count: 1 }),
-      });
-      const data = await res.json();
-      const s = data.suggestions?.[0];
-      if (s) {
-        setInnInfo({
-          name: s.value,
-          type: s.data?.type === "INDIVIDUAL" ? "ИП" : "Организация",
-          kpp: s.data?.kpp || undefined,
-          ogrn: s.data?.ogrn || undefined,
-          address: (s.data?.address as { value?: string })?.value || undefined,
-        });
-        setErrors((e) => ({ ...e, inn: undefined }));
-      } else {
-        setInnInfo(null);
-        setErrors((e) => ({ ...e, inn: "ИНН не найден в реестре" }));
-      }
-    } catch {
-      setInnInfo(null);
-    } finally {
-      setInnChecking(false);
-    }
-  }, []);
 
   const validate = useCallback((): FieldError => ({
     name: validateName(name),
@@ -219,18 +56,6 @@ export default function DocumentModal({ open, onClose }: DocumentModalProps) {
     setTouched((t) => ({ ...t, [field]: true }));
     const errs = validate();
     setErrors(errs);
-  };
-
-  const handleInnChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const digits = e.target.value.replace(/\D/g, "").slice(0, 12);
-    setInn(digits);
-    setInnInfo(null);
-    setErrors((er) => ({ ...er, inn: undefined }));
-  };
-
-  const handleInnBlur = () => {
-    blurField("inn");
-    checkInn(inn);
   };
 
   const handleFiles = (selected: FileList | null) => {
@@ -246,11 +71,6 @@ export default function DocumentModal({ open, onClose }: DocumentModalProps) {
   };
 
   const removeFile = (i: number) => setFiles((prev) => prev.filter((_, idx) => idx !== i));
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    handleFiles(e.dataTransfer.files);
-  };
 
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setPhone(formatPhone(e.target.value));
@@ -303,8 +123,6 @@ export default function DocumentModal({ open, onClose }: DocumentModalProps) {
     }
   };
 
-  const inputBase = "w-full px-4 py-3 rounded text-sm outline-none transition-colors font-body";
-
   const inputStyle = (field: keyof FieldError) => ({
     background: "var(--bg)",
     border: `1px solid ${touched[field] && errors[field] ? "#ef4444" : "var(--border-c)"}`,
@@ -334,7 +152,7 @@ export default function DocumentModal({ open, onClose }: DocumentModalProps) {
           {/* Name */}
           <div className="relative">
             <input
-              className={inputBase}
+              className={INPUT_BASE}
               style={inputStyle("name")}
               placeholder="Ваше имя"
               value={name}
@@ -344,7 +162,12 @@ export default function DocumentModal({ open, onClose }: DocumentModalProps) {
               disabled={loading}
               autoComplete="off"
             />
-            {nameFocus && <SuggestDropdown suggestions={nameSuggest.suggestions} onSelect={(v) => { setName(v); nameSuggest.clear(); }} />}
+            {nameFocus && (
+              <SuggestDropdown
+                suggestions={nameSuggest.suggestions}
+                onSelect={(v) => { setName(v); nameSuggest.clear(); }}
+              />
+            )}
             {touched.name && errors.name && (
               <p className="text-xs mt-1 flex items-center gap-1" style={{ color: "#ef4444" }}>
                 <Icon name="CircleAlert" size={12} />{errors.name}
@@ -355,7 +178,7 @@ export default function DocumentModal({ open, onClose }: DocumentModalProps) {
           {/* Phone */}
           <div>
             <input
-              className={inputBase}
+              className={INPUT_BASE}
               style={inputStyle("phone")}
               placeholder="+7 (___) ___-__-__"
               type="tel"
@@ -374,7 +197,7 @@ export default function DocumentModal({ open, onClose }: DocumentModalProps) {
           {/* Email */}
           <div className="relative">
             <input
-              className={inputBase}
+              className={INPUT_BASE}
               style={inputStyle("email")}
               placeholder="Email"
               type="email"
@@ -385,7 +208,12 @@ export default function DocumentModal({ open, onClose }: DocumentModalProps) {
               disabled={loading}
               autoComplete="off"
             />
-            {emailFocus && <SuggestDropdown suggestions={emailSuggest.suggestions} onSelect={(v) => { setEmail(v); emailSuggest.clear(); }} />}
+            {emailFocus && (
+              <SuggestDropdown
+                suggestions={emailSuggest.suggestions}
+                onSelect={(v) => { setEmail(v); emailSuggest.clear(); }}
+              />
+            )}
             {touched.email && errors.email && (
               <p className="text-xs mt-1 flex items-center gap-1" style={{ color: "#ef4444" }}>
                 <Icon name="CircleAlert" size={12} />{errors.email}
@@ -394,62 +222,23 @@ export default function DocumentModal({ open, onClose }: DocumentModalProps) {
           </div>
 
           {/* INN */}
-          <div>
-            <div className="relative">
-              <input
-                className={inputBase}
-                style={{ ...inputStyle("inn"), paddingRight: "2.5rem" }}
-                placeholder="ИНН (необязательно)"
-                value={inn}
-                onChange={handleInnChange}
-                onBlur={handleInnBlur}
-                disabled={loading}
-                inputMode="numeric"
-                maxLength={12}
-              />
-              <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                {innChecking && (
-                  <Icon name="LoaderCircle" size={16} className="animate-spin" style={{ color: "var(--text-muted)" }} />
-                )}
-                {!innChecking && innInfo && (
-                  <Icon name="CircleCheck" size={16} style={{ color: "var(--success)" }} />
-                )}
-                {!innChecking && touched.inn && errors.inn && (
-                  <Icon name="CircleAlert" size={16} style={{ color: "#ef4444" }} />
-                )}
-              </div>
-            </div>
-
-            {touched.inn && errors.inn && !innChecking && (
-              <p className="text-xs mt-1 flex items-center gap-1" style={{ color: "#ef4444" }}>
-                <Icon name="CircleAlert" size={12} />{errors.inn}
-              </p>
-            )}
-
-            {innInfo && (
-              <div
-                className="mt-2 rounded-lg px-4 py-3 text-xs space-y-1"
-                style={{ background: "var(--success-dim)", border: "1px solid rgba(21,128,61,0.15)" }}
-              >
-                <p className="font-semibold flex items-center gap-1.5" style={{ color: "var(--success)" }}>
-                  <Icon name="Building2" size={13} />
-                  {innInfo.name}
-                </p>
-                <p style={{ color: "var(--success)" }}>
-                  {innInfo.type}
-                  {innInfo.kpp && ` · КПП: ${innInfo.kpp}`}
-                  {innInfo.ogrn && ` · ОГРН: ${innInfo.ogrn}`}
-                </p>
-                {innInfo.address && (
-                  <p style={{ color: "var(--success)", opacity: 0.8 }}>{innInfo.address}</p>
-                )}
-              </div>
-            )}
-          </div>
+          <InnField
+            inn={inn}
+            innInfo={innInfo}
+            innChecking={innChecking}
+            touched={touched}
+            errors={errors}
+            loading={loading}
+            setInn={setInn}
+            setInnInfo={setInnInfo}
+            setInnChecking={setInnChecking}
+            setErrors={setErrors}
+            onBlur={() => blurField("inn")}
+          />
 
           {/* Message */}
           <textarea
-            className={inputBase}
+            className={INPUT_BASE}
             style={{ background: "var(--bg)", border: "1px solid var(--border-c)", color: "var(--text)", resize: "none" }}
             placeholder="Опишите вашу ситуацию или вопрос"
             rows={4}
@@ -459,54 +248,13 @@ export default function DocumentModal({ open, onClose }: DocumentModalProps) {
           />
 
           {/* File upload */}
-          <div
-            className="rounded cursor-pointer flex flex-col items-center justify-center gap-2 py-6"
-            style={{
-              border: "1px dashed var(--border-c)",
-              background: "var(--bg)",
-              pointerEvents: loading ? "none" : "auto",
-            }}
-            onClick={() => inputRef.current?.click()}
-            onDrop={handleDrop}
-            onDragOver={(e) => e.preventDefault()}
-          >
-            <Icon name="Upload" size={20} style={{ color: "var(--blue)" }} />
-            <span className="text-xs font-body" style={{ color: "var(--text-muted)" }}>
-              Нажмите или перетащите файлы
-            </span>
-            <input ref={inputRef} type="file" multiple className="hidden" onChange={(e) => handleFiles(e.target.files)} />
-          </div>
-
-          {files.length > 0 && (
-            <div className="space-y-2">
-              {files.map((f, i) => (
-                <div key={i} className="flex items-center justify-between px-3 py-2 rounded text-xs font-body" style={{ background: "var(--bg)", color: "var(--text)" }}>
-                  <div className="flex items-center gap-2 overflow-hidden">
-                    <Icon name="FileText" size={14} style={{ color: "var(--blue)", flexShrink: 0 }} />
-                    <span className="truncate">{f.name}</span>
-                    <span style={{ color: "var(--text-muted)", flexShrink: 0 }}>{formatSize(f.size)}</span>
-                  </div>
-                  {!loading && (
-                    <button type="button" onClick={() => removeFile(i)} style={{ color: "var(--text-muted)" }} className="ml-2 flex-shrink-0">
-                      <Icon name="X" size={14} />
-                    </button>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
-
-          {loading && (
-            <div className="space-y-2">
-              <div className="flex justify-between text-xs font-body" style={{ color: "var(--text-muted)" }}>
-                <span>{progress < 100 ? "Загружаем файлы..." : "Обрабатываем..."}</span>
-                <span>{progress < 100 ? `${progress}%` : ""}</span>
-              </div>
-              <div className="w-full rounded-full h-1" style={{ background: "var(--border-c)" }}>
-                <div className="h-1 rounded-full transition-all duration-300" style={{ width: `${progress}%`, background: "var(--blue)" }} />
-              </div>
-            </div>
-          )}
+          <FileUpload
+            files={files}
+            loading={loading}
+            progress={progress}
+            onFiles={handleFiles}
+            onRemove={removeFile}
+          />
 
           {/* Consent */}
           <label className="flex items-start gap-3 cursor-pointer select-none">
