@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Icon from "@/components/ui/icon";
 import { toast } from "sonner";
+import ContractorCheck from "@/components/ContractorCheck";
 
 const AUTH_URL = "https://functions.poehali.dev/cf442b6d-1511-4826-a129-d63da8e9dfa0";
 const ADMIN_URL = "https://functions.poehali.dev/2fb10b23-2471-4f73-a39f-315ed4c51e8c";
@@ -260,6 +261,10 @@ function ClientCabinet({ user }: { user: User }) {
           Отправить заявку сейчас
           <Icon name="ArrowRight" size={16} />
         </Link>
+      </div>
+
+      <div className="mt-8">
+        <ContractorCheck />
       </div>
     </div>
   );
