@@ -107,7 +107,7 @@ export default function HeroSection({ onScrollTo, onOpenModal }: HeroSectionProp
           </a>
           <Link to="/login" onClick={() => setMobileMenuOpen(false)}
             className="flex items-center gap-2 w-full font-body text-sm py-3"
-            style={{ color: "var(--text-muted)", borderBottom: "1px solid rgba(212,175,55,0.08)" }}>
+            style={{ color: "#ffffff", borderBottom: "1px solid rgba(212,175,55,0.08)" }}>
             <Icon name="LayoutDashboard" size={15} />
             Личный кабинет
           </Link>
