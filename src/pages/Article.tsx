@@ -21,7 +21,7 @@ export default function Article() {
       >
         <Link to="/">
           <img
-            src="https://cdn.poehali.dev/projects/ec09f91e-5c19-456f-a8f1-620fce7cd143/bucket/ab52ccb9-db9a-405f-97a2-aabaac530445.jpg"
+            src="https://cdn.poehali.dev/projects/ec09f91e-5c19-456f-a8f1-620fce7cd143/bucket/9f3ffbe2-117b-415c-bd94-81fb0c9183e9.png"
             alt="Legis24"
             style={{ height: 48, width: "auto", borderRadius: 6 }}
           />

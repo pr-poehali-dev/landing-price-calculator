@@ -125,7 +125,7 @@ export default function FaqSection({ onOpenModal }: { onOpenModal: () => void })
       <footer className="py-8 px-6 md:px-12"
         style={{ background: "#050d1a", borderTop: "1px solid rgba(212,175,55,0.1)" }}>
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-5">
-          <img src="https://cdn.poehali.dev/projects/ec09f91e-5c19-456f-a8f1-620fce7cd143/bucket/ab52ccb9-db9a-405f-97a2-aabaac530445.jpg"
+          <img src="https://cdn.poehali.dev/projects/ec09f91e-5c19-456f-a8f1-620fce7cd143/bucket/9f3ffbe2-117b-415c-bd94-81fb0c9183e9.png"
             alt="Legis24" style={{ height: 36, width: "auto", borderRadius: 6 }} />
           <div className="flex flex-col items-center gap-1">
             <a href="mailto:order@advokat-vsem.ru"

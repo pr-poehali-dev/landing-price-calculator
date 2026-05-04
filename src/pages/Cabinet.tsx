@@ -304,7 +304,7 @@ export default function Cabinet() {
       <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 md:px-10 py-3 md:py-4"
         style={{ background: "rgba(255,255,255,0.97)", backdropFilter: "blur(16px)", borderBottom: "1px solid var(--border-c)" }}>
         <Link to="/">
-          <img src="https://cdn.poehali.dev/projects/ec09f91e-5c19-456f-a8f1-620fce7cd143/bucket/ab52ccb9-db9a-405f-97a2-aabaac530445.jpg"
+          <img src="https://cdn.poehali.dev/projects/ec09f91e-5c19-456f-a8f1-620fce7cd143/bucket/9f3ffbe2-117b-415c-bd94-81fb0c9183e9.png"
             alt="Legis24" style={{ height: 36, width: "auto", borderRadius: 6 }} />
         </Link>
         <div className="flex items-center gap-2 md:gap-4">
