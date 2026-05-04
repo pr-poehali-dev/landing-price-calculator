@@ -11,7 +11,7 @@ const SUGGEST_BANK   = "https://suggestions.dadata.ru/suggestions/api/4_1/rs/sug
 const SUGGEST_ADDR   = "https://suggestions.dadata.ru/suggestions/api/4_1/rs/suggest/address";
 const SUGGEST_FIO    = "https://suggestions.dadata.ru/suggestions/api/4_1/rs/suggest/fio";
 
-interface Props { sessionId: string; onSaved?: (p: Partner) => void }
+interface Props { sessionId: string; onSaved?: (p: Partner) => void; isAdmin?: boolean }
 interface DDSuggestion { value: string; data: Record<string, unknown> }
 
 const INPUT = "w-full px-4 py-3 rounded-lg text-sm outline-none transition-all font-body";
@@ -83,7 +83,7 @@ const REQUIRED_FIELDS: { key: string; label: string }[] = [
   { key: "contact_email",label: "Email" },
 ];
 
-export default function PartnerProfile({ sessionId, onSaved }: Props) {
+export default function PartnerProfile({ sessionId, onSaved, isAdmin = false }: Props) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [partner, setPartner] = useState<Partner | null>(null);
@@ -273,7 +273,7 @@ export default function PartnerProfile({ sessionId, onSaved }: Props) {
   };
 
   const missingFields = REQUIRED_FIELDS.filter(rf => !form[rf.key]);
-  const isMissing = (key: string) => showMissing && !form[key];
+  const isMissing = (key: string) => !isAdmin && showMissing && !form[key];
 
   if (loading) return (
     <div className="flex items-center justify-center py-16">
@@ -296,7 +296,7 @@ export default function PartnerProfile({ sessionId, onSaved }: Props) {
       )}
 
       {/* Блок незаполненных полей */}
-      {showMissing && missingFields.length > 0 && (
+      {!isAdmin && showMissing && missingFields.length > 0 && (
         <div className="rounded-xl px-5 py-4" style={{ background: "rgba(239,68,68,0.05)", border: "1px solid rgba(239,68,68,0.25)" }}>
           <div className="flex items-center gap-2 mb-3">
             <Icon name="AlertCircle" size={16} style={{ color: "#ef4444" }} />

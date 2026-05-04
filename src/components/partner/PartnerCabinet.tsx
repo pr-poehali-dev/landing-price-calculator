@@ -84,7 +84,7 @@ export default function PartnerCabinet({ sessionId, userLogin, isAdmin = false }
           <>
             {tab === "stats"   && <PartnerStats sessionId={sessionId} missingCount={missingCount} onGoToProfile={() => setTab("profile")} />}
             {tab === "clients" && <ClientList sessionId={sessionId} onSelectClient={setSelectedClientId} />}
-            {tab === "profile" && <PartnerProfile sessionId={sessionId} />}
+            {tab === "profile" && <PartnerProfile sessionId={sessionId} isAdmin={isAdmin} />}
           </>
         )}
       </div>
