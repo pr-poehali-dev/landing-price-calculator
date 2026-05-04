@@ -162,9 +162,18 @@ export default function FaqSection({ onOpenModal }: { onOpenModal: () => void })
             alt="Legis24"
             style={{ height: 40, width: "auto", mixBlendMode: "multiply" }}
           />
-          <p className="font-body text-xs" style={{ color: "var(--text-muted)" }}>
-            © 2024 Legis24. Адвокатское бюро. Все права защищены.
-          </p>
+          <div className="flex flex-col items-center gap-1 text-center">
+            <a
+              href="mailto:order@advokat-vsem.ru"
+              className="font-body text-sm font-semibold transition-opacity hover:opacity-70"
+              style={{ color: "var(--navy)" }}
+            >
+              order@advokat-vsem.ru
+            </a>
+            <p className="font-body text-xs" style={{ color: "var(--text-muted)" }}>
+              © 2024 Legis24. Адвокатское бюро. Все права защищены.
+            </p>
+          </div>
           <div className="flex flex-wrap gap-5 font-body text-xs justify-center" style={{ color: "var(--text-muted)" }}>
             <a
               href="/privacy"
