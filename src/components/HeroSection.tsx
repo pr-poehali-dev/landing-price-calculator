@@ -64,6 +64,14 @@ export default function HeroSection({ onScrollTo, onOpenModal }: HeroSectionProp
             onMouseLeave={e => (e.currentTarget.style.color = "var(--text-muted)")}>
             order@advokat-vsem.ru
           </a>
+          <Link to="/login"
+            className="flex items-center gap-1.5 font-body text-xs font-semibold tracking-widest uppercase transition-colors"
+            style={{ color: "var(--text-muted)" }}
+            onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = "var(--gold)"}
+            onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = "var(--text-muted)"}>
+            <Icon name="LayoutDashboard" size={13} />
+            Кабинет
+          </Link>
           <button className="btn-gold px-5 py-2.5 text-xs" onClick={onOpenModal}>
             Отправить документ
           </button>
