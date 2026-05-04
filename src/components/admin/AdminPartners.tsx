@@ -46,6 +46,7 @@ export default function AdminPartners({ sessionId }: Props) {
   const [q, setQ] = useState("");
   const [qInput, setQInput] = useState("");
   const [selectedLogin, setSelectedLogin] = useState<string | null>(null);
+  const [statusChanging, setStatusChanging] = useState<number | null>(null);
 
   const load = useCallback(async (p: number, search: string) => {
     setLoading(true);
@@ -63,6 +64,17 @@ export default function AdminPartners({ sessionId }: Props) {
   useEffect(() => { load(page, q); }, [load, page, q]);
 
   const totalPages = Math.ceil(total / 20);
+
+  const changeStatus = async (partnerId: number, newStatus: string) => {
+    setStatusChanging(partnerId);
+    await fetch(PARTNER_API, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-Session-Id": sessionId },
+      body: JSON.stringify({ action: "set_partner_status", partner_id: partnerId, status: newStatus }),
+    });
+    setPartners(prev => prev.map(p => p.partner_id === partnerId ? { ...p, status: newStatus } : p));
+    setStatusChanging(null);
+  };
 
   if (selectedLogin) {
     return (
@@ -183,7 +195,25 @@ export default function AdminPartners({ sessionId }: Props) {
                           <span className="text-sm font-semibold" style={{ color: "var(--blue)" }}>{fmtMoney(p.total_reward)}</span>
                         </td>
                         <td className="px-5 py-3">
-                          <span className="text-xs font-semibold px-2 py-1 rounded-full" style={{ background: st.bg, color: st.color }}>{st.text}</span>
+                          {p.partner_id ? (
+                            <div className="relative inline-block">
+                              {statusChanging === p.partner_id ? (
+                                <Icon name="LoaderCircle" size={14} className="animate-spin" style={{ color: "var(--blue)" }} />
+                              ) : (
+                                <select
+                                  value={p.status || "pending"}
+                                  onChange={(e) => changeStatus(p.partner_id!, e.target.value)}
+                                  className="text-xs font-semibold px-2 py-1 rounded-full cursor-pointer outline-none appearance-none pr-5"
+                                  style={{ background: st.bg, color: st.color, border: `1px solid ${st.color}30` }}>
+                                  <option value="active">Активен</option>
+                                  <option value="pending">На проверке</option>
+                                  <option value="blocked">Заблокирован</option>
+                                </select>
+                              )}
+                            </div>
+                          ) : (
+                            <span className="text-xs" style={{ color: "var(--text-muted)" }}>Профиль не заполнен</span>
+                          )}
                         </td>
                         <td className="px-5 py-3">
                           <button
@@ -212,7 +242,22 @@ export default function AdminPartners({ sessionId }: Props) {
                         <p className="font-semibold text-sm" style={{ color: "var(--navy)" }}>{p.short_name || p.full_name || p.login}</p>
                         <p className="text-xs font-mono" style={{ color: "var(--text-muted)" }}>{p.login}{p.inn ? ` · ИНН ${p.inn}` : ""}</p>
                       </div>
-                      <span className="text-xs font-semibold px-2 py-1 rounded-full ml-2 flex-shrink-0" style={{ background: st.bg, color: st.color }}>{st.text}</span>
+                      {p.partner_id && (
+                        statusChanging === p.partner_id ? (
+                          <Icon name="LoaderCircle" size={14} className="animate-spin ml-2 flex-shrink-0" style={{ color: "var(--blue)" }} />
+                        ) : (
+                          <select
+                            value={p.status || "pending"}
+                            onChange={(e) => { e.stopPropagation(); changeStatus(p.partner_id!, e.target.value); }}
+                            onClick={(e) => e.stopPropagation()}
+                            className="text-xs font-semibold px-2 py-1 rounded-full cursor-pointer outline-none appearance-none ml-2 flex-shrink-0"
+                            style={{ background: st.bg, color: st.color, border: `1px solid ${st.color}30` }}>
+                            <option value="active">Активен</option>
+                            <option value="pending">На проверке</option>
+                            <option value="blocked">Заблокирован</option>
+                          </select>
+                        )
+                      )}
                     </div>
                     <div className="flex items-center justify-between mt-2">
                       <span className="text-xs" style={{ color: "var(--text-muted)" }}>Клиентов: {p.clients_count} · {fmtMoney(p.total_reward)}</span>

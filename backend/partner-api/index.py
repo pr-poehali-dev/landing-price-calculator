@@ -508,6 +508,24 @@ def handler(event: dict, context) -> dict:
             }
         })
 
+    # ── SET PARTNER STATUS (admin only) ──────────────────────────────────────
+    if action == "set_partner_status":
+        if not is_admin:
+            return err("Только администратор", 403)
+        partner_id = body.get("partner_id")
+        new_status = body.get("status")
+        if not partner_id or new_status not in ("active", "pending", "blocked"):
+            return err("Укажите partner_id и статус (active/pending/blocked)")
+        conn = get_conn()
+        cur = conn.cursor()
+        cur.execute(
+            f"UPDATE {SCHEMA}.partners SET status = %s, updated_at = NOW() WHERE id = %s",
+            (new_status, partner_id),
+        )
+        conn.commit()
+        conn.close()
+        return ok({"ok": True})
+
     # ── GET PARTNERS (admin only) ─────────────────────────────────────────────
     if action == "get_partners":
         if not is_admin:
