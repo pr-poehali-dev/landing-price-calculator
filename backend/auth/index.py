@@ -8,6 +8,7 @@ import hashlib
 import secrets
 from datetime import datetime, timedelta
 import psycopg2
+import urllib.request
 
 SCHEMA = os.environ.get("MAIN_DB_SCHEMA", "t_p60076574_landing_price_calcul")
 
@@ -22,6 +23,23 @@ def hash_password(password: str) -> str:
 
 def make_session_id() -> str:
     return secrets.token_hex(32)
+
+
+def send_tg(text: str):
+    token = os.environ.get("TELEGRAM_BOT_TOKEN")
+    chat_id = os.environ.get("TELEGRAM_CHAT_ID")
+    if not token or not chat_id:
+        return
+    payload = json.dumps({"chat_id": chat_id, "text": text, "parse_mode": "HTML"}).encode()
+    req = urllib.request.Request(
+        f"https://api.telegram.org/bot{token}/sendMessage",
+        data=payload,
+        headers={"Content-Type": "application/json"},
+    )
+    try:
+        urllib.request.urlopen(req, timeout=5)
+    except Exception:
+        pass
 
 
 def cors():
@@ -112,6 +130,8 @@ def handler(event: dict, context) -> dict:
         )
         conn.commit()
         conn.close()
+        role_label = "Партнёр" if role == "partner" else "Клиент"
+        send_tg(f"🆕 Новая регистрация\n<b>Роль:</b> {role_label}\n<b>Логин:</b> {login}")
         return ok({"session_id": sid, "user": {"id": user_id, "login": login, "role": role}}, 201)
 
     # ── ME ────────────────────────────────────────────────────────────────────
