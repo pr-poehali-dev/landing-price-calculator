@@ -114,12 +114,13 @@ export default function HeroSection({ onScrollTo, onOpenModal }: HeroSectionProp
           style={{
             backgroundImage: `url('${HERO_BG}')`,
             backgroundSize: "cover",
-            backgroundPosition: "center 30%",
+            backgroundPosition: "center center",
             opacity: 1,
           }} />
 
         {/* Gradient overlays — лёгкое затемнение для читаемости текста */}
         <div className="absolute inset-0" style={{ background: "linear-gradient(to right, rgba(8,15,30,0.65) 30%, rgba(8,15,30,0.2) 100%)" }} />
+        <div className="absolute inset-0 lg:hidden" style={{ background: "linear-gradient(to bottom, rgba(8,15,30,0.45) 0%, rgba(8,15,30,0.75) 100%)" }} />
         <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(8,15,30,0.7) 0%, transparent 50%)" }} />
 
         {/* Gold glow top-right */}
