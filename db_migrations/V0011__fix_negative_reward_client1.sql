@@ -1,0 +1,1 @@
+UPDATE t_p60076574_landing_price_calcul.partner_clients SET partner_reward = NULL WHERE id = 1 AND partner_reward = -1;
