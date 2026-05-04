@@ -151,13 +151,7 @@ export default function FaqSection({ onOpenModal }: { onOpenModal: () => void })
         </div>
       </footer>
 
-      {/* ── MOBILE STICKY CTA ───────────────────────────────────────────── */}
-      <div className="fixed bottom-0 left-0 right-0 z-40 md:hidden px-4 py-3"
-        style={{ background: "rgba(5,13,26,0.97)", backdropFilter: "blur(12px)", borderTop: "1px solid rgba(212,175,55,0.15)" }}>
-        <button className="btn-gold w-full py-3.5 text-xs" onClick={onOpenModal}>
-          Отправить документ
-        </button>
-      </div>
+
     </>
   );
 }
