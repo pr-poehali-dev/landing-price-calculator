@@ -57,13 +57,6 @@ export default function HeroSection({ onScrollTo, onOpenModal }: HeroSectionProp
 
         {/* Desktop right */}
         <div className="hidden md:flex items-center gap-5">
-          <a href="mailto:order@advokat-vsem.ru"
-            className="font-body text-xs transition-colors"
-            style={{ color: "var(--text-muted)" }}
-            onMouseEnter={e => (e.currentTarget.style.color = "var(--gold)")}
-            onMouseLeave={e => (e.currentTarget.style.color = "var(--text-muted)")}>
-            order@advokat-vsem.ru
-          </a>
           <Link to="/login"
             className="flex items-center gap-1.5 font-body text-xs font-semibold tracking-widest uppercase transition-colors"
             style={{ color: "var(--text-muted)" }}
