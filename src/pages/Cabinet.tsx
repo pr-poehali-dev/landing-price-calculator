@@ -5,6 +5,8 @@ import { toast } from "sonner";
 import ContractorCheck from "@/components/ContractorCheck";
 import PartnerCabinet from "@/components/partner/PartnerCabinet";
 import AdminPartners from "@/components/admin/AdminPartners";
+import ClientList from "@/components/partner/ClientList";
+import ClientCard from "@/components/partner/ClientCard";
 
 const AUTH_URL = "https://functions.poehali.dev/cf442b6d-1511-4826-a129-d63da8e9dfa0";
 const ADMIN_URL = "https://functions.poehali.dev/2fb10b23-2471-4f73-a39f-315ed4c51e8c";
@@ -277,7 +279,8 @@ export default function Cabinet() {
   const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
   const [checking, setChecking] = useState(true);
-  const [adminTab, setAdminTab] = useState<"submissions" | "partners">("submissions");
+  const [adminTab, setAdminTab] = useState<"submissions" | "partners" | "clients">("submissions");
+  const [selectedClientId, setSelectedClientId] = useState<number | null>(null);
   const sessionId = localStorage.getItem("session_id") || "";
 
   useEffect(() => {
@@ -362,10 +365,11 @@ export default function Cabinet() {
                 </h1>
                 <div className="flex gap-2 overflow-x-auto pb-1">
                   {([
-                    { key: "submissions", label: "Заявки клиентов", icon: "Inbox" },
+                    { key: "submissions", label: "Заявки с сайта", icon: "Inbox" },
+                    { key: "clients",     label: "Клиенты партнёров", icon: "Users" },
                     { key: "partners",    label: "Партнёры",        icon: "Handshake" },
                   ] as const).map((t) => (
-                    <button key={t.key} onClick={() => setAdminTab(t.key)}
+                    <button key={t.key} onClick={() => { setAdminTab(t.key); setSelectedClientId(null); }}
                       className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all flex-shrink-0"
                       style={{
                         background: adminTab === t.key ? "var(--navy)" : "var(--bg-white)",
@@ -378,7 +382,25 @@ export default function Cabinet() {
                   ))}
                 </div>
               </div>
-              {adminTab === "submissions" ? <AdminPanel sessionId={sessionId} /> : <AdminPartners sessionId={sessionId} />}
+              {adminTab === "submissions" && <AdminPanel sessionId={sessionId} />}
+              {adminTab === "clients" && (
+                <div className="rounded-2xl p-4 md:p-6" style={{ background: "var(--bg-white)", border: "1px solid var(--border-c)" }}>
+                  {selectedClientId ? (
+                    <ClientCard
+                      sessionId={sessionId}
+                      clientId={selectedClientId}
+                      isAdmin={true}
+                      onBack={() => setSelectedClientId(null)}
+                    />
+                  ) : (
+                    <ClientList
+                      sessionId={sessionId}
+                      onSelectClient={setSelectedClientId}
+                    />
+                  )}
+                </div>
+              )}
+              {adminTab === "partners" && <AdminPartners sessionId={sessionId} />}
             </>
           )
           : user?.role === "partner"
