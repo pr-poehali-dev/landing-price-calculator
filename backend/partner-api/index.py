@@ -11,6 +11,7 @@ import base64
 import mimetypes
 import psycopg2
 import boto3
+import urllib.request
 
 SCHEMA = os.environ.get("MAIN_DB_SCHEMA", "t_p60076574_landing_price_calcul")
 
@@ -93,6 +94,23 @@ def generate_ref_code(login: str) -> str:
     return (login[:4].upper() + secrets.token_hex(3).upper())[:10]
 
 
+def send_tg(text: str):
+    token = os.environ.get("TELEGRAM_BOT_TOKEN")
+    chat_id = os.environ.get("TELEGRAM_CHAT_ID")
+    if not token or not chat_id:
+        return
+    payload = json.dumps({"chat_id": chat_id, "text": text, "parse_mode": "HTML"}).encode()
+    req = urllib.request.Request(
+        f"https://api.telegram.org/bot{token}/sendMessage",
+        data=payload,
+        headers={"Content-Type": "application/json"},
+    )
+    try:
+        urllib.request.urlopen(req, timeout=5)
+    except Exception:
+        pass
+
+
 def handler(event: dict, context) -> dict:
     if event.get("httpMethod") == "OPTIONS":
         return {"statusCode": 200, "headers": cors(), "body": ""}
@@ -154,6 +172,19 @@ def handler(event: dict, context) -> dict:
         conn.commit()
         partner = get_or_create_partner(conn, user["id"])
         conn.close()
+        company = partner.get("short_name") or partner.get("full_name") or "—"
+        inn = partner.get("inn") or "—"
+        contact = partner.get("contact_name") or "—"
+        phone = partner.get("contact_phone") or "—"
+        action_label = "обновил профиль" if existing else "заполнил профиль впервые"
+        send_tg(
+            f"🤝 Партнёр {action_label}\n"
+            f"<b>Логин:</b> {user['login']}\n"
+            f"<b>Компания:</b> {company}\n"
+            f"<b>ИНН:</b> {inn}\n"
+            f"<b>Контакт:</b> {contact}\n"
+            f"<b>Телефон:</b> {phone}"
+        )
         return ok({"partner": partner, "ok": True})
 
     # ── GET CLIENTS ───────────────────────────────────────────────────────────
