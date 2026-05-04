@@ -3,11 +3,12 @@ import Icon from "@/components/ui/icon";
 import PartnerProfile from "./PartnerProfile";
 import PartnerStats from "./PartnerStats";
 import PartnerRates from "./PartnerRates";
+import PartnerFinances from "./PartnerFinances";
 import ClientList from "./ClientList";
 import ClientCard from "./ClientCard";
 import { apiPartner } from "./types";
 
-type Tab = "stats" | "clients" | "rates" | "profile";
+type Tab = "stats" | "clients" | "finances" | "rates" | "profile";
 
 interface Props {
   sessionId: string;
@@ -17,10 +18,11 @@ interface Props {
 }
 
 const TABS: { key: Tab; label: string; icon: string }[] = [
-  { key: "stats",   label: "Статистика", icon: "BarChart2" },
-  { key: "clients", label: "Мои клиенты", icon: "Users" },
-  { key: "rates",   label: "Тарифы",      icon: "Percent" },
-  { key: "profile", label: "Профиль",     icon: "Settings" },
+  { key: "stats",    label: "Статистика",  icon: "BarChart2" },
+  { key: "clients",  label: "Мои клиенты", icon: "Users" },
+  { key: "finances", label: "Финансы",     icon: "Wallet" },
+  { key: "rates",    label: "Тарифы",      icon: "Percent" },
+  { key: "profile",  label: "Профиль",     icon: "Settings" },
 ];
 
 const REQUIRED_FIELDS = [
@@ -93,6 +95,12 @@ export default function PartnerCabinet({ sessionId, userLogin, isAdmin = false, 
           <>
             {tab === "stats"   && <PartnerStats sessionId={sessionId} missingCount={missingCount} onGoToProfile={() => setTab("profile")} partnerId={partnerId} />}
             {tab === "clients" && <ClientList sessionId={sessionId} onSelectClient={setSelectedClientId} partnerId={partnerId} />}
+            {tab === "finances" && resolvedPartnerId && (
+              <PartnerFinances sessionId={sessionId} partnerId={resolvedPartnerId} isAdmin={isAdmin} />
+            )}
+            {tab === "finances" && !resolvedPartnerId && (
+              <p className="text-sm text-center py-8" style={{ color: "var(--text-muted)" }}>Сначала заполните профиль партнёра</p>
+            )}
             {tab === "rates" && resolvedPartnerId && (
               <PartnerRates sessionId={sessionId} partnerId={resolvedPartnerId} isAdmin={isAdmin} />
             )}

@@ -730,4 +730,118 @@ def handler(event: dict, context) -> dict:
         conn.close()
         return ok({"ok": True})
 
+    # ── GET FINANCES ──────────────────────────────────────────────────────────
+    if action == "get_finances":
+        conn = get_conn()
+        cur = conn.cursor()
+
+        if is_admin:
+            partner_id = body.get("partner_id")
+        else:
+            cur.execute(f"SELECT id FROM {SCHEMA}.partners WHERE user_id = %s", (user["id"],))
+            prow = cur.fetchone()
+            if not prow:
+                conn.close()
+                return ok({"clients": [], "payments": [], "summary": {}})
+            partner_id = prow[0]
+
+        if not partner_id:
+            conn.close()
+            return err("Не указан partner_id")
+
+        # Клиенты с вознаграждением
+        cur.execute(
+            f"""SELECT pc.id, pc.full_name, pc.deal_amount, pc.partner_reward,
+                       pc.reward_paid, pc.current_status, pc.updated_at
+                FROM {SCHEMA}.partner_clients pc
+                WHERE pc.partner_id = %s
+                ORDER BY pc.updated_at DESC""",
+            (partner_id,),
+        )
+        client_cols = ["id", "full_name", "deal_amount", "partner_reward", "reward_paid", "current_status", "updated_at"]
+        clients = [dict(zip(client_cols, row)) for row in cur.fetchall()]
+        for c in clients:
+            for k in ["deal_amount", "partner_reward"]:
+                if c[k] is not None:
+                    c[k] = float(c[k])
+
+        # История выплат
+        cur.execute(
+            f"""SELECT pp.id, pp.amount, pp.note, pp.paid_at,
+                       pc.full_name as client_name, u.login as paid_by
+                FROM {SCHEMA}.partner_payments pp
+                LEFT JOIN {SCHEMA}.partner_clients pc ON pc.id = pp.client_id
+                LEFT JOIN {SCHEMA}.users u ON u.id = pp.created_by
+                WHERE pp.partner_id = %s
+                ORDER BY pp.paid_at DESC""",
+            (partner_id,),
+        )
+        pay_cols = ["id", "amount", "note", "paid_at", "client_name", "paid_by"]
+        payments = [dict(zip(pay_cols, row)) for row in cur.fetchall()]
+        for p in payments:
+            p["amount"] = float(p["amount"])
+
+        # Сводка
+        total_reward   = sum(c["partner_reward"] or 0 for c in clients)
+        paid_reward    = sum(c["partner_reward"] or 0 for c in clients if c["reward_paid"])
+        total_payments = sum(p["amount"] for p in payments)
+
+        conn.close()
+        return ok({
+            "clients": clients,
+            "payments": payments,
+            "summary": {
+                "total_reward": total_reward,
+                "paid_reward": paid_reward,
+                "pending_reward": total_reward - paid_reward,
+                "total_payments": total_payments,
+            },
+        })
+
+    # ── ADD PAYMENT (admin only) ───────────────────────────────────────────────
+    if action == "add_payment":
+        if not is_admin:
+            return err("Только администратор", 403)
+        partner_id = body.get("partner_id")
+        amount     = body.get("amount")
+        client_id  = body.get("client_id")
+        note       = body.get("note", "")
+        if not partner_id or not amount:
+            return err("Укажите partner_id и amount")
+        conn = get_conn()
+        cur = conn.cursor()
+        cur.execute(
+            f"""INSERT INTO {SCHEMA}.partner_payments (partner_id, client_id, amount, note, created_by)
+                VALUES (%s, %s, %s, %s, %s) RETURNING id, paid_at""",
+            (partner_id, client_id or None, float(amount), note or None, user["id"]),
+        )
+        row = cur.fetchone()
+        # Если указан клиент — помечаем reward_paid
+        if client_id:
+            cur.execute(
+                f"UPDATE {SCHEMA}.partner_clients SET reward_paid = true, updated_at = NOW() WHERE id = %s",
+                (client_id,),
+            )
+        conn.commit()
+        conn.close()
+        return ok({"ok": True, "id": row[0], "paid_at": str(row[1])})
+
+    # ── SET REWARD PAID (admin only) ───────────────────────────────────────────
+    if action == "set_reward_paid":
+        if not is_admin:
+            return err("Только администратор", 403)
+        client_id = body.get("client_id")
+        paid      = bool(body.get("paid", True))
+        if not client_id:
+            return err("Не указан client_id")
+        conn = get_conn()
+        cur = conn.cursor()
+        cur.execute(
+            f"UPDATE {SCHEMA}.partner_clients SET reward_paid = %s, updated_at = NOW() WHERE id = %s",
+            (paid, client_id),
+        )
+        conn.commit()
+        conn.close()
+        return ok({"ok": True})
+
     return err("Неизвестное действие", 400)
