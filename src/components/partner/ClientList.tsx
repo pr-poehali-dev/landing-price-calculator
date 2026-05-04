@@ -1,5 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import Icon from "@/components/ui/icon";
+import PhoneInput from "@/components/ui/PhoneInput";
+import EmailInput from "@/components/ui/EmailInput";
 import {
   apiPartner, DEAL_STATUS_META, fmtDate, fmtMoney,
   DADATA_TOKEN,
@@ -327,15 +329,15 @@ export default function ClientList({ sessionId, onSelectClient }: Props) {
                   <DaDropdown suggestions={fioOpen ? fioSugg : []} onSelect={applyFio} loading={fioLoading} />
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-semibold mb-1.5" style={{ color: "var(--text-muted)" }}>Телефон</label>
-                  <input className={INPUT} style={inputStyle} placeholder="+7 999 000-00-00" value={form.phone} onChange={setF("phone")} />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold mb-1.5" style={{ color: "var(--text-muted)" }}>Email</label>
-                  <input className={INPUT} style={inputStyle} placeholder="email@mail.ru" value={form.email} onChange={setF("email")} />
-                </div>
+              <div>
+                <label className="block text-xs font-semibold mb-1.5" style={{ color: "var(--text-muted)" }}>Телефон</label>
+                <PhoneInput className={INPUT} style={inputStyle}
+                  value={form.phone} onChange={v => setForm(prev => ({ ...prev, phone: v }))} />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold mb-1.5" style={{ color: "var(--text-muted)" }}>Email</label>
+                <EmailInput className={INPUT} style={inputStyle}
+                  value={form.email} onChange={v => setForm(prev => ({ ...prev, email: v }))} />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>

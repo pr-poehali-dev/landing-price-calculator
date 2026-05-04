@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import Icon from "@/components/ui/icon";
+import PhoneInput from "@/components/ui/PhoneInput";
+import EmailInput from "@/components/ui/EmailInput";
 import {
   apiPartner, DADATA_TOKEN, PARTNER_TYPE_LABELS,
   type Partner, type PartnerType,
@@ -455,13 +457,15 @@ export default function PartnerProfile({ sessionId, onSaved, isAdmin = false }: 
         </div>
         <div className="grid sm:grid-cols-2 gap-4">
           <Field label="Телефон" missing={isMissing("contact_phone")}>
-            <input className={INPUT} style={isMissing("contact_phone") ? inputStyleMissing : inputStyle}
-              placeholder="+7 (999) 000-00-00" value={form.contact_phone} onChange={set("contact_phone")} />
+            <PhoneInput className={INPUT} style={isMissing("contact_phone") ? inputStyleMissing : inputStyle}
+              value={form.contact_phone} onChange={v => setForm(prev => ({ ...prev, contact_phone: v }))} />
           </Field>
-          <Field label="Email" missing={isMissing("contact_email")}>
-            <input className={INPUT} style={isMissing("contact_email") ? inputStyleMissing : inputStyle}
-              placeholder="partner@mail.ru" value={form.contact_email} onChange={set("contact_email")} />
-          </Field>
+          <div>
+            <Field label="Email" missing={isMissing("contact_email")}>
+              <EmailInput className={INPUT} style={isMissing("contact_email") ? inputStyleMissing : inputStyle}
+                value={form.contact_email} onChange={v => setForm(prev => ({ ...prev, contact_email: v }))} />
+            </Field>
+          </div>
         </div>
       </div>
 
