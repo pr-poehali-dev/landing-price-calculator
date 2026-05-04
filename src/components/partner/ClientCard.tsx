@@ -30,9 +30,9 @@ function Section({ title, icon, children }: { title: string; icon: string; child
 function Row({ label, value }: { label: string; value?: string | null }) {
   if (!value) return null;
   return (
-    <div className="flex gap-3 py-2" style={{ borderBottom: "1px solid var(--border-c)" }}>
-      <span className="text-xs flex-shrink-0 w-36" style={{ color: "var(--text-muted)" }}>{label}</span>
-      <span className="text-sm font-medium flex-1" style={{ color: "var(--navy)" }}>{value}</span>
+    <div className="py-2" style={{ borderBottom: "1px solid var(--border-c)" }}>
+      <span className="block text-xs mb-0.5" style={{ color: "var(--text-muted)" }}>{label}</span>
+      <span className="text-sm font-medium" style={{ color: "var(--navy)" }}>{value}</span>
     </div>
   );
 }
@@ -138,36 +138,36 @@ export default function ClientCard({ sessionId, clientId, isAdmin, onBack }: Pro
   return (
     <div>
       {/* Back button + header */}
-      <div className="mb-6">
-        <button onClick={onBack} className="flex items-center gap-1.5 text-sm mb-4 transition-opacity hover:opacity-70"
+      <div className="mb-5">
+        <button onClick={onBack} className="flex items-center gap-1.5 text-sm mb-3 transition-opacity hover:opacity-70"
           style={{ color: "var(--text-muted)" }}>
           <Icon name="ArrowLeft" size={16} /> Назад к списку
         </button>
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <h2 className="text-2xl font-bold" style={{ fontFamily: "Playfair Display, serif", color: "var(--navy)" }}>
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+          <div className="min-w-0">
+            <h2 className="text-xl md:text-2xl font-bold leading-snug" style={{ fontFamily: "Playfair Display, serif", color: "var(--navy)" }}>
               {client.full_name}
             </h2>
             {client.inn && <p className="text-sm mt-0.5" style={{ color: "var(--text-muted)" }}>ИНН: {client.inn}</p>}
           </div>
-          <div className="flex items-center gap-3">
-            <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold"
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold"
               style={{ background: currentStatusMeta.bg, color: currentStatusMeta.color }}>
-              <span className="w-2 h-2 rounded-full" style={{ background: currentStatusMeta.color }} />
+              <span className="w-1.5 h-1.5 rounded-full" style={{ background: currentStatusMeta.color }} />
               {currentStatusMeta.label}
             </span>
             {isAdmin && (
               <button onClick={() => { setNewStatus(client.current_status); setStatusModal(true); }}
-                className="px-4 py-2 rounded-xl text-sm font-semibold transition-all"
+                className="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
                 style={{ background: "var(--blue)", color: "#fff" }}>
-                Сменить статус
+                Статус
               </button>
             )}
           </div>
         </div>
       </div>
 
-      <div className="grid lg:grid-cols-3 gap-5">
+      <div className="grid lg:grid-cols-3 gap-4 md:gap-5">
         {/* Left column */}
         <div className="lg:col-span-2 space-y-5">
 
@@ -233,9 +233,9 @@ export default function ClientCard({ sessionId, clientId, isAdmin, onBack }: Pro
           <Section title="Финансовая информация" icon="DollarSign">
             <Row label="Сумма сделки" value={fmtMoney(client.deal_amount)} />
             <Row label="Вознаграждение" value={fmtMoney(client.partner_reward)} />
-            <div className="flex gap-2 py-2">
-              <span className="text-xs flex-shrink-0 w-36" style={{ color: "var(--text-muted)" }}>Выплата</span>
-              <span className={`text-sm font-semibold`}
+            <div className="py-2">
+              <span className="block text-xs mb-0.5" style={{ color: "var(--text-muted)" }}>Выплата</span>
+              <span className="text-sm font-semibold"
                 style={{ color: client.reward_paid ? "var(--success)" : "#d97706" }}>
                 {client.reward_paid ? "Выплачено" : "Ожидается"}
               </span>
@@ -245,9 +245,9 @@ export default function ClientCard({ sessionId, clientId, isAdmin, onBack }: Pro
           {/* Документы */}
           <Section title="Документы" icon="Paperclip">
             {/* Upload zone */}
-            <div className="mb-4 flex gap-3">
+            <div className="mb-4 flex flex-col sm:flex-row gap-2">
               <select value={uploadCat} onChange={e => setUploadCat(e.target.value)}
-                className="px-3 py-2 rounded-lg text-sm outline-none"
+                className="px-3 py-2 rounded-lg text-sm outline-none w-full sm:w-auto"
                 style={{ background: "var(--bg)", border: "1px solid var(--border-c)", color: "var(--text)" }}>
                 {Object.entries(DOC_CATEGORIES).map(([k, v]) => (
                   <option key={k} value={k}>{v}</option>
@@ -262,7 +262,7 @@ export default function ClientCard({ sessionId, clientId, isAdmin, onBack }: Pro
                 onDragOver={e => e.preventDefault()} onDrop={handleDrop}>
                 {uploading
                   ? <><Icon name="LoaderCircle" size={16} className="animate-spin" /> Загрузка...</>
-                  : <><Icon name="Upload" size={16} /> Загрузить файл или перетащить сюда</>}
+                  : <><Icon name="Upload" size={16} /> <span className="hidden sm:inline">Загрузить файл или перетащить сюда</span><span className="sm:hidden">Загрузить файл</span></>}
               </button>
             </div>
 
@@ -293,17 +293,17 @@ export default function ClientCard({ sessionId, clientId, isAdmin, onBack }: Pro
             <div className="space-y-3 mb-4 max-h-64 overflow-y-auto">
               {comments.length === 0 && <p className="text-sm" style={{ color: "var(--text-muted)" }}>Комментариев нет</p>}
               {comments.map(c => (
-                <div key={c.id} className={`flex gap-3 ${c.author_role === "admin" ? "flex-row-reverse" : ""}`}>
-                  <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold"
+                <div key={c.id} className={`flex gap-2 ${c.author_role === "admin" ? "flex-row-reverse" : ""}`}>
+                  <div className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold mt-0.5"
                     style={{ background: c.author_role === "admin" ? "var(--blue-dim)" : "var(--bg)", color: c.author_role === "admin" ? "var(--blue)" : "var(--text-muted)" }}>
                     {(c.author || c.author_role || "?")[0].toUpperCase()}
                   </div>
-                  <div className={`max-w-xs lg:max-w-md ${c.author_role === "admin" ? "items-end" : "items-start"} flex flex-col`}>
-                    <div className="rounded-2xl px-4 py-2.5 text-sm"
+                  <div className={`max-w-[75%] ${c.author_role === "admin" ? "items-end" : "items-start"} flex flex-col`}>
+                    <div className="rounded-2xl px-3 py-2 text-sm"
                       style={{ background: c.author_role === "admin" ? "var(--blue)" : "var(--bg)", color: c.author_role === "admin" ? "#fff" : "var(--text)" }}>
                       {c.message}
                     </div>
-                    <p className="text-xs mt-1" style={{ color: "var(--text-muted)" }}>
+                    <p className="text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>
                       {c.author || c.author_role} · {fmtDate(c.created_at)}
                     </p>
                   </div>
@@ -311,13 +311,13 @@ export default function ClientCard({ sessionId, clientId, isAdmin, onBack }: Pro
               ))}
             </div>
             <div className="flex gap-2">
-              <input className="flex-1 px-4 py-2.5 rounded-lg text-sm outline-none"
+              <input className="flex-1 px-3 py-2.5 rounded-lg text-sm outline-none min-w-0"
                 style={{ background: "var(--bg)", border: "1px solid var(--border-c)", color: "var(--text)" }}
-                placeholder="Написать комментарий..."
+                placeholder="Комментарий..."
                 value={commentText} onChange={e => setCommentText(e.target.value)}
                 onKeyDown={e => e.key === "Enter" && !e.shiftKey && sendComment()} />
               <button onClick={sendComment} disabled={sendingComment || !commentText.trim()}
-                className="px-4 py-2.5 rounded-lg transition-all"
+                className="px-3 py-2.5 rounded-lg transition-all flex-shrink-0"
                 style={{ background: "var(--blue)", color: "#fff", opacity: !commentText.trim() ? 0.5 : 1 }}>
                 <Icon name={sendingComment ? "LoaderCircle" : "Send"} size={16}
                   className={sendingComment ? "animate-spin" : ""} />
