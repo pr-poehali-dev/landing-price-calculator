@@ -73,5 +73,3 @@ export function validateInn(v: string): string | undefined {
 export const INPUT_BASE = "w-full px-4 py-3 rounded text-sm outline-none transition-all font-body";
 
 export const DADATA_TOKEN = import.meta.env.VITE_DADATA_API_KEY || "";
-
-export const DADATA_TOKEN = import.meta.env.VITE_DADATA_API_KEY || "";
