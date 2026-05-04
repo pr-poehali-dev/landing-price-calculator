@@ -63,9 +63,18 @@ export default function HeroSection({ onScrollTo, onOpenModal }: HeroSectionProp
           </Link>
         </div>
 
-        <button className="btn-gold px-5 py-2.5 text-xs hidden md:block" onClick={onOpenModal}>
-          Отправить документ
-        </button>
+        <div className="hidden md:flex items-center gap-4">
+          <a
+            href="mailto:order@advokat-vsem.ru"
+            className="font-body text-xs transition-opacity hover:opacity-70"
+            style={{ color: "var(--text-muted)" }}
+          >
+            order@advokat-vsem.ru
+          </a>
+          <button className="btn-gold px-5 py-2.5 text-xs" onClick={onOpenModal}>
+            Отправить документ
+          </button>
+        </div>
 
         <button
           className="md:hidden"
@@ -105,6 +114,13 @@ export default function HeroSection({ onScrollTo, onOpenModal }: HeroSectionProp
           >
             Блог
           </Link>
+          <a
+            href="mailto:order@advokat-vsem.ru"
+            className="block w-full text-left font-body text-sm py-2 transition-opacity hover:opacity-70"
+            style={{ color: "var(--blue)" }}
+          >
+            order@advokat-vsem.ru
+          </a>
           <button className="btn-gold w-full py-3 text-xs mt-2" onClick={onOpenModal}>Отправить документ</button>
         </div>
       )}

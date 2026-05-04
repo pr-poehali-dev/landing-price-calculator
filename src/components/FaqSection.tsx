@@ -135,7 +135,6 @@ export default function FaqSection({ onOpenModal }: { onOpenModal: () => void })
               Отправьте документ — скажем, как действовать
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-
               <a
                 href="https://t.me/intelectpro_bot"
                 target="_blank"
@@ -145,6 +144,16 @@ export default function FaqSection({ onOpenModal }: { onOpenModal: () => void })
               >
                 <Icon name="Send" size={16} />
                 Telegram
+              </a>
+              <a
+                href="mailto:order@advokat-vsem.ru"
+                className="flex items-center justify-center gap-3 px-10 py-4 font-body font-semibold text-xs tracking-widest uppercase transition-all duration-200"
+                style={{ background: "transparent", color: "var(--navy)", border: "1px solid var(--border-c)", borderRadius: 6 }}
+                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = "var(--blue)"; (e.currentTarget as HTMLElement).style.color = "var(--blue)"; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = "var(--border-c)"; (e.currentTarget as HTMLElement).style.color = "var(--navy)"; }}
+              >
+                <Icon name="Mail" size={16} />
+                order@advokat-vsem.ru
               </a>
             </div>
           </div>
