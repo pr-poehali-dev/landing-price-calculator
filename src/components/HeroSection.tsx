@@ -28,7 +28,7 @@ export default function HeroSection({ onScrollTo, onOpenModal }: HeroSectionProp
     <>
       {/* ── NAV ─────────────────────────────────────────────────────────── */}
       <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 md:px-12 py-4"
-        style={{ background: "rgba(8,15,30,0.92)", backdropFilter: "blur(20px)", borderBottom: "1px solid rgba(212,175,55,0.1)" }}>
+        style={{ background: "#0d1826", borderBottom: "1px solid rgba(212,175,55,0.1)" }}>
 
         {/* Logo */}
         <div className="flex items-center">
@@ -37,20 +37,20 @@ export default function HeroSection({ onScrollTo, onOpenModal }: HeroSectionProp
         </div>
 
         {/* Desktop nav */}
-        <div className="hidden md:flex items-center gap-8 font-body text-xs tracking-widest uppercase" style={{ color: "var(--text-muted)" }}>
+        <div className="hidden md:flex items-center gap-8 font-body text-xs tracking-widest uppercase">
           {NAV_LINKS.map(([id, label]) => (
             <button key={id} onClick={() => scrollTo(id)}
               className="transition-colors"
-              style={{ color: "var(--text-muted)", letterSpacing: "0.12em" }}
+              style={{ color: "#ffffff", letterSpacing: "0.12em" }}
               onMouseEnter={e => (e.currentTarget.style.color = "var(--gold)")}
-              onMouseLeave={e => (e.currentTarget.style.color = "var(--text-muted)")}>
+              onMouseLeave={e => (e.currentTarget.style.color = "#ffffff")}>
               {label}
             </button>
           ))}
           <Link to="/blog" className="transition-colors"
-            style={{ color: "var(--text-muted)" }}
+            style={{ color: "#ffffff" }}
             onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = "var(--gold)"}
-            onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = "var(--text-muted)"}>
+            onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = "#ffffff"}>
             Блог
           </Link>
         </div>
@@ -59,9 +59,9 @@ export default function HeroSection({ onScrollTo, onOpenModal }: HeroSectionProp
         <div className="hidden md:flex items-center gap-5">
           <Link to="/login"
             className="flex items-center gap-1.5 font-body text-xs font-semibold tracking-widest uppercase transition-colors"
-            style={{ color: "var(--text-muted)" }}
+            style={{ color: "#ffffff" }}
             onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = "var(--gold)"}
-            onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = "var(--text-muted)"}>
+            onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = "#ffffff"}>
             <Icon name="LayoutDashboard" size={13} />
             Кабинет
           </Link>
