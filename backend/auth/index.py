@@ -84,6 +84,9 @@ def handler(event: dict, context) -> dict:
     if action == "register":
         login = (body.get("login") or "").strip().lower()
         password = body.get("password") or ""
+        role = body.get("role") or "client"
+        if role not in ("client", "partner"):
+            role = "client"
         if not login or not password:
             return err("Укажите логин и пароль")
         if len(password) < 6:
@@ -97,8 +100,8 @@ def handler(event: dict, context) -> dict:
             return err("Пользователь с таким логином уже существует", 409)
 
         cur.execute(
-            f"INSERT INTO {SCHEMA}.users (login, password_hash, role) VALUES (%s, %s, 'client') RETURNING id",
-            (login, hash_password(password)),
+            f"INSERT INTO {SCHEMA}.users (login, password_hash, role) VALUES (%s, %s, %s) RETURNING id",
+            (login, hash_password(password), role),
         )
         user_id = cur.fetchone()[0]
         sid = make_session_id()
@@ -109,7 +112,7 @@ def handler(event: dict, context) -> dict:
         )
         conn.commit()
         conn.close()
-        return ok({"session_id": sid, "user": {"id": user_id, "login": login, "role": "client"}}, 201)
+        return ok({"session_id": sid, "user": {"id": user_id, "login": login, "role": role}}, 201)
 
     # ── ME ────────────────────────────────────────────────────────────────────
     if action == "me":

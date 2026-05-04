@@ -14,6 +14,7 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [role, setRole] = useState<"client" | "partner">("client");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,7 +32,7 @@ export default function Login() {
       const res = await fetch(AUTH_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: tab, login: login.trim().toLowerCase(), password }),
+        body: JSON.stringify({ action: tab, login: login.trim().toLowerCase(), password, role: tab === "register" ? role : undefined }),
       });
       const data = await res.json();
 
@@ -155,6 +156,30 @@ export default function Login() {
               </button>
             </div>
           </div>
+
+          {tab === "register" && (
+            <div className="flex gap-3">
+              {([
+                { value: "client", label: "Заказчик", icon: "User" },
+                { value: "partner", label: "Партнёр", icon: "Handshake" },
+              ] as const).map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => setRole(opt.value)}
+                  className="flex-1 flex flex-col items-center gap-1.5 py-3 rounded-lg text-xs font-medium transition-all border"
+                  style={{
+                    background: role === opt.value ? "var(--navy)" : "var(--bg)",
+                    color: role === opt.value ? "#fff" : "var(--text-muted)",
+                    borderColor: role === opt.value ? "var(--navy)" : "var(--border-c)",
+                  }}
+                >
+                  <Icon name={opt.icon} size={18} />
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          )}
 
           <button
             type="submit"
