@@ -38,6 +38,26 @@ function Row({ label, value }: { label: string; value?: string | null }) {
   );
 }
 
+interface ClientService {
+  id: number;
+  service_id: number;
+  name: string;
+  category: string;
+  deal_amount: number | null;
+  reward_amount: number | null;
+  rate_pct: number | null;
+  note: string | null;
+}
+
+interface AvailableService {
+  id: number;
+  category: string;
+  name: string;
+  base_price: number | null;
+  price_note: string | null;
+  rate_pct: number;
+}
+
 export default function ClientCard({ sessionId, clientId, isAdmin, onBack }: Props) {
   const [loading, setLoading] = useState(true);
   const [client, setClient] = useState<ClientDetail | null>(null);
@@ -62,6 +82,15 @@ export default function ClientCard({ sessionId, clientId, isAdmin, onBack }: Pro
   const [deleting, setDeleting] = useState(false);
   const [ddData, setDdData] = useState<Record<string, unknown> | null>(null);
 
+  // Услуги
+  const [clientServices, setClientServices] = useState<ClientService[]>([]);
+  const [allServices, setAllServices] = useState<AvailableService[]>([]);
+  const [addingService, setAddingService] = useState(false);
+  const [selectedServiceId, setSelectedServiceId] = useState<number | null>(null);
+  const [serviceDealAmount, setServiceDealAmount] = useState("");
+  const [savingService, setSavingService] = useState(false);
+  const [removingServiceId, setRemovingServiceId] = useState<number | null>(null);
+
   const load = async () => {
     const data = await apiPartner(sessionId, { action: "get_client", client_id: clientId });
     if (data.client) {
@@ -74,6 +103,14 @@ export default function ClientCard({ sessionId, clientId, isAdmin, onBack }: Pro
   };
 
   useEffect(() => { load(); }, [clientId]);
+
+  // Загрузка услуг клиента и доступных услуг
+  useEffect(() => {
+    apiPartner(sessionId, { action: "get_client_services", client_id: clientId })
+      .then(d => { if (d.client_services) setClientServices(d.client_services); });
+    apiPartner(sessionId, { action: "get_services" })
+      .then(d => { if (d.services) setAllServices(d.services); });
+  }, [clientId, sessionId]);
 
   // Загрузка DaData по ИНН клиента
   useEffect(() => {
@@ -118,6 +155,42 @@ export default function ClientCard({ sessionId, clientId, isAdmin, onBack }: Pro
     e.preventDefault();
     const file = e.dataTransfer.files[0];
     if (file) handleFile(file);
+  };
+
+  const selectedService = allServices.find(s => s.id === selectedServiceId);
+  const computedReward = selectedService && selectedService.rate_pct > 0 && serviceDealAmount
+    ? parseFloat(serviceDealAmount) * selectedService.rate_pct / 100
+    : selectedService && selectedService.base_price && selectedService.rate_pct > 0
+      ? selectedService.base_price * selectedService.rate_pct / 100
+      : null;
+
+  const handleAddService = async () => {
+    if (!selectedServiceId) return;
+    setSavingService(true);
+    const amount = serviceDealAmount ? parseFloat(serviceDealAmount) : selectedService?.base_price || null;
+    await apiPartner(sessionId, {
+      action: "add_client_service",
+      client_id: clientId,
+      service_id: selectedServiceId,
+      deal_amount: amount,
+      reward_amount: computedReward,
+      rate_pct: selectedService?.rate_pct || null,
+    });
+    const d = await apiPartner(sessionId, { action: "get_client_services", client_id: clientId });
+    if (d.client_services) setClientServices(d.client_services);
+    await load();
+    setAddingService(false);
+    setSelectedServiceId(null);
+    setServiceDealAmount("");
+    setSavingService(false);
+  };
+
+  const handleRemoveService = async (itemId: number) => {
+    setRemovingServiceId(itemId);
+    await apiPartner(sessionId, { action: "remove_client_service", id: itemId, client_id: clientId });
+    setClientServices(prev => prev.filter(s => s.id !== itemId));
+    await load();
+    setRemovingServiceId(null);
   };
 
   const changeStatus = async () => {
@@ -244,6 +317,114 @@ export default function ClientCard({ sessionId, clientId, isAdmin, onBack }: Pro
               )}
             </Section>
           )}
+
+          {/* Услуги */}
+          <Section title="Услуги по сделке" icon="Briefcase">
+            {/* Список добавленных */}
+            {clientServices.length > 0 && (
+              <div className="space-y-2 mb-3">
+                {clientServices.map(cs => (
+                  <div key={cs.id} className="rounded-xl px-4 py-3 flex items-start justify-between gap-3"
+                    style={{ background: "var(--bg)", border: "1px solid var(--border-c)" }}>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold" style={{ color: "var(--navy)" }}>{cs.name}</p>
+                      <p className="text-xs" style={{ color: "var(--text-muted)" }}>{cs.category}</p>
+                      <div className="flex flex-wrap gap-3 mt-1.5">
+                        {cs.deal_amount != null && (
+                          <span className="text-xs" style={{ color: "var(--text)" }}>Сумма: <b>{fmtMoney(cs.deal_amount)}</b></span>
+                        )}
+                        {cs.rate_pct != null && cs.rate_pct > 0 && (
+                          <span className="text-xs" style={{ color: "var(--text-muted)" }}>Ставка: {cs.rate_pct}%</span>
+                        )}
+                        {cs.reward_amount != null && cs.reward_amount > 0 && (
+                          <span className="text-xs font-semibold" style={{ color: "var(--success)" }}>
+                            Бонус: {fmtMoney(cs.reward_amount)}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <button onClick={() => handleRemoveService(cs.id)} disabled={removingServiceId === cs.id}
+                      className="flex-shrink-0 transition-opacity hover:opacity-70 mt-0.5"
+                      style={{ color: "#ef4444" }}>
+                      {removingServiceId === cs.id
+                        ? <Icon name="LoaderCircle" size={14} className="animate-spin" />
+                        : <Icon name="X" size={14} />}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Форма добавления */}
+            {addingService ? (
+              <div className="rounded-xl px-4 py-4 space-y-3" style={{ background: "var(--bg)", border: "1px solid var(--border-c)" }}>
+                <div>
+                  <label className="block text-xs font-medium mb-1" style={{ color: "var(--text-muted)" }}>Выберите услугу</label>
+                  <select
+                    value={selectedServiceId || ""}
+                    onChange={e => { setSelectedServiceId(Number(e.target.value)); setServiceDealAmount(""); }}
+                    className="w-full px-3 py-2 rounded-lg text-sm outline-none"
+                    style={{ background: "#fff", border: "1px solid var(--border-c)", color: "var(--text)" }}>
+                    <option value="">— выберите —</option>
+                    {[...new Set(allServices.map(s => s.category))].map(cat => (
+                      <optgroup key={cat} label={cat}>
+                        {allServices.filter(s => s.category === cat).map(s => (
+                          <option key={s.id} value={s.id}>
+                            {s.name} {s.rate_pct > 0 ? `(${s.rate_pct}%)` : ""} — {s.price_note || (s.base_price ? fmtMoney(s.base_price) : "по договорённости")}
+                          </option>
+                        ))}
+                      </optgroup>
+                    ))}
+                  </select>
+                </div>
+
+                {selectedService && (
+                  <div>
+                    <label className="block text-xs font-medium mb-1" style={{ color: "var(--text-muted)" }}>
+                      Сумма сделки {selectedService.base_price ? `(по умолчанию ${fmtMoney(selectedService.base_price)})` : ""}
+                    </label>
+                    <input type="number" min="0"
+                      className="w-full px-3 py-2 rounded-lg text-sm outline-none"
+                      style={{ background: "#fff", border: "1px solid var(--border-c)", color: "var(--text)" }}
+                      placeholder={selectedService.base_price ? String(selectedService.base_price) : "0"}
+                      value={serviceDealAmount}
+                      onChange={e => setServiceDealAmount(e.target.value)} />
+                    {selectedService.rate_pct > 0 && (
+                      <p className="text-xs mt-1.5" style={{ color: "var(--success)" }}>
+                        Бонус {selectedService.rate_pct}%: <b>{fmtMoney(computedReward)}</b>
+                      </p>
+                    )}
+                    {selectedService.rate_pct === 0 && (
+                      <p className="text-xs mt-1.5" style={{ color: "var(--text-muted)" }}>
+                        Ставка для этой услуги не установлена
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                <div className="flex gap-2 pt-1">
+                  <button onClick={() => { setAddingService(false); setSelectedServiceId(null); setServiceDealAmount(""); }}
+                    className="px-4 py-2 rounded-lg text-xs font-medium"
+                    style={{ background: "var(--bg-white)", color: "var(--text-muted)", border: "1px solid var(--border-c)" }}>
+                    Отмена
+                  </button>
+                  <button onClick={handleAddService} disabled={!selectedServiceId || savingService}
+                    className="px-4 py-2 rounded-lg text-xs font-semibold flex items-center gap-1.5"
+                    style={{ background: "var(--blue)", color: "#fff", opacity: !selectedServiceId ? 0.5 : 1 }}>
+                    {savingService ? <Icon name="LoaderCircle" size={13} className="animate-spin" /> : <Icon name="Plus" size={13} />}
+                    Добавить
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <button onClick={() => setAddingService(true)}
+                className="w-full py-2.5 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition-all"
+                style={{ background: "var(--bg)", border: "1px dashed var(--border-c)", color: "var(--text-muted)" }}>
+                <Icon name="Plus" size={14} />
+                Добавить услугу
+              </button>
+            )}
+          </Section>
 
           {/* Финансы сделки */}
           <Section title="Финансовая информация" icon="DollarSign">

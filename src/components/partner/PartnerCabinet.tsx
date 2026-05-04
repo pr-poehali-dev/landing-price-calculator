@@ -2,11 +2,12 @@ import { useState, useEffect } from "react";
 import Icon from "@/components/ui/icon";
 import PartnerProfile from "./PartnerProfile";
 import PartnerStats from "./PartnerStats";
+import PartnerRates from "./PartnerRates";
 import ClientList from "./ClientList";
 import ClientCard from "./ClientCard";
 import { apiPartner } from "./types";
 
-type Tab = "stats" | "clients" | "profile";
+type Tab = "stats" | "clients" | "rates" | "profile";
 
 interface Props {
   sessionId: string;
@@ -18,6 +19,7 @@ interface Props {
 const TABS: { key: Tab; label: string; icon: string }[] = [
   { key: "stats",   label: "Статистика", icon: "BarChart2" },
   { key: "clients", label: "Мои клиенты", icon: "Users" },
+  { key: "rates",   label: "Тарифы",      icon: "Percent" },
   { key: "profile", label: "Профиль",     icon: "Settings" },
 ];
 
@@ -30,6 +32,7 @@ export default function PartnerCabinet({ sessionId, userLogin, isAdmin = false, 
   const [tab, setTab] = useState<Tab>("stats");
   const [selectedClientId, setSelectedClientId] = useState<number | null>(null);
   const [missingCount, setMissingCount] = useState(0);
+  const [resolvedPartnerId, setResolvedPartnerId] = useState<number | undefined>(partnerId);
 
   useEffect(() => {
     if (isAdmin) return;
@@ -37,11 +40,16 @@ export default function PartnerCabinet({ sessionId, userLogin, isAdmin = false, 
       if (data.partner) {
         const p = data.partner as Record<string, unknown>;
         setMissingCount(REQUIRED_FIELDS.filter(k => !p[k]).length);
+        if (p.id) setResolvedPartnerId(p.id as number);
       } else {
         setMissingCount(REQUIRED_FIELDS.length);
       }
     });
   }, [sessionId, isAdmin]);
+
+  useEffect(() => {
+    if (partnerId) setResolvedPartnerId(partnerId);
+  }, [partnerId]);
 
   return (
     <div>
@@ -85,6 +93,12 @@ export default function PartnerCabinet({ sessionId, userLogin, isAdmin = false, 
           <>
             {tab === "stats"   && <PartnerStats sessionId={sessionId} missingCount={missingCount} onGoToProfile={() => setTab("profile")} partnerId={partnerId} />}
             {tab === "clients" && <ClientList sessionId={sessionId} onSelectClient={setSelectedClientId} partnerId={partnerId} />}
+            {tab === "rates" && resolvedPartnerId && (
+              <PartnerRates sessionId={sessionId} partnerId={resolvedPartnerId} isAdmin={isAdmin} />
+            )}
+            {tab === "rates" && !resolvedPartnerId && (
+              <p className="text-sm text-center py-8" style={{ color: "var(--text-muted)" }}>Сначала заполните профиль партнёра</p>
+            )}
             {tab === "profile" && <PartnerProfile sessionId={sessionId} isAdmin={isAdmin} />}
           </>
         )}

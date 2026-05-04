@@ -574,6 +574,137 @@ def handler(event: dict, context) -> dict:
         conn.close()
         return ok({"partners": partners, "total": total, "page": page})
 
+    # ── GET SERVICES + MY RATES ───────────────────────────────────────────────
+    if action == "get_services":
+        conn = get_conn()
+        cur = conn.cursor()
+        # partner_id — свой или переданный (для админа)
+        if is_admin:
+            partner_id = body.get("partner_id")
+        else:
+            cur.execute(f"SELECT id FROM {SCHEMA}.partners WHERE user_id = %s", (user["id"],))
+            prow = cur.fetchone()
+            partner_id = prow[0] if prow else None
+
+        cur.execute(
+            f"SELECT id, category, name, description, base_price, price_note, sort_order FROM {SCHEMA}.services WHERE active = true ORDER BY sort_order",
+        )
+        svc_cols = ["id", "category", "name", "description", "base_price", "price_note", "sort_order"]
+        services = [dict(zip(svc_cols, row)) for row in cur.fetchall()]
+
+        rates = {}
+        if partner_id:
+            cur.execute(
+                f"SELECT service_id, rate_pct FROM {SCHEMA}.partner_service_rates WHERE partner_id = %s",
+                (partner_id,),
+            )
+            rates = {row[0]: float(row[1]) for row in cur.fetchall()}
+
+        for s in services:
+            s["rate_pct"] = rates.get(s["id"], 0.0)
+            if s["base_price"] is not None:
+                s["base_price"] = float(s["base_price"])
+
+        conn.close()
+        return ok({"services": services, "partner_id": partner_id})
+
+    # ── SET PARTNER SERVICE RATE (admin only) ─────────────────────────────────
+    if action == "set_partner_rate":
+        if not is_admin:
+            return err("Только администратор", 403)
+        partner_id = body.get("partner_id")
+        service_id = body.get("service_id")
+        rate_pct   = body.get("rate_pct", 0)
+        if not partner_id or not service_id:
+            return err("Укажите partner_id и service_id")
+        conn = get_conn()
+        cur = conn.cursor()
+        cur.execute(
+            f"""INSERT INTO {SCHEMA}.partner_service_rates (partner_id, service_id, rate_pct)
+                VALUES (%s, %s, %s)
+                ON CONFLICT (partner_id, service_id) DO UPDATE SET rate_pct = %s, updated_at = NOW()""",
+            (partner_id, service_id, rate_pct, rate_pct),
+        )
+        conn.commit()
+        conn.close()
+        return ok({"ok": True})
+
+    # ── GET CLIENT SERVICES ───────────────────────────────────────────────────
+    if action == "get_client_services":
+        client_id = body.get("client_id")
+        if not client_id:
+            return err("Не указан client_id")
+        conn = get_conn()
+        cur = conn.cursor()
+        cur.execute(
+            f"""SELECT pcs.id, pcs.service_id, s.name, s.category, s.base_price, s.price_note,
+                       pcs.deal_amount, pcs.reward_amount, pcs.rate_pct, pcs.note
+                FROM {SCHEMA}.partner_client_services pcs
+                JOIN {SCHEMA}.services s ON s.id = pcs.service_id
+                WHERE pcs.client_id = %s ORDER BY pcs.id""",
+            (client_id,),
+        )
+        cols = ["id", "service_id", "name", "category", "base_price", "price_note",
+                "deal_amount", "reward_amount", "rate_pct", "note"]
+        items = [dict(zip(cols, row)) for row in cur.fetchall()]
+        for i in items:
+            for k in ["base_price", "deal_amount", "reward_amount", "rate_pct"]:
+                if i[k] is not None:
+                    i[k] = float(i[k])
+        conn.close()
+        return ok({"client_services": items})
+
+    # ── ADD CLIENT SERVICE ────────────────────────────────────────────────────
+    if action == "add_client_service":
+        client_id  = body.get("client_id")
+        service_id = body.get("service_id")
+        if not client_id or not service_id:
+            return err("Не указаны client_id или service_id")
+        deal_amount   = body.get("deal_amount")
+        reward_amount = body.get("reward_amount")
+        rate_pct      = body.get("rate_pct")
+        note          = body.get("note")
+        conn = get_conn()
+        cur = conn.cursor()
+        cur.execute(
+            f"""INSERT INTO {SCHEMA}.partner_client_services
+                (client_id, service_id, deal_amount, reward_amount, rate_pct, note)
+                VALUES (%s, %s, %s, %s, %s, %s) RETURNING id""",
+            (client_id, service_id, deal_amount or None, reward_amount or None, rate_pct or None, note or None),
+        )
+        new_id = cur.fetchone()[0]
+        # обновляем суммарное вознаграждение на клиенте
+        cur.execute(
+            f"""UPDATE {SCHEMA}.partner_clients SET
+                partner_reward = (SELECT COALESCE(SUM(reward_amount),0) FROM {SCHEMA}.partner_client_services WHERE client_id = %s),
+                deal_amount    = (SELECT COALESCE(SUM(deal_amount),0)   FROM {SCHEMA}.partner_client_services WHERE client_id = %s),
+                updated_at = NOW() WHERE id = %s""",
+            (client_id, client_id, client_id),
+        )
+        conn.commit()
+        conn.close()
+        return ok({"ok": True, "id": new_id})
+
+    # ── REMOVE CLIENT SERVICE ─────────────────────────────────────────────────
+    if action == "remove_client_service":
+        item_id   = body.get("id")
+        client_id = body.get("client_id")
+        if not item_id or not client_id:
+            return err("Не указан id или client_id")
+        conn = get_conn()
+        cur = conn.cursor()
+        cur.execute(f"DELETE FROM {SCHEMA}.partner_client_services WHERE id = %s", (item_id,))
+        cur.execute(
+            f"""UPDATE {SCHEMA}.partner_clients SET
+                partner_reward = (SELECT COALESCE(SUM(reward_amount),0) FROM {SCHEMA}.partner_client_services WHERE client_id = %s),
+                deal_amount    = (SELECT COALESCE(SUM(deal_amount),0)   FROM {SCHEMA}.partner_client_services WHERE client_id = %s),
+                updated_at = NOW() WHERE id = %s""",
+            (client_id, client_id, client_id),
+        )
+        conn.commit()
+        conn.close()
+        return ok({"ok": True})
+
     # ── DELETE CLIENT ─────────────────────────────────────────────────────────
     if action == "delete_client":
         client_id = body.get("client_id")
