@@ -118,14 +118,22 @@ def handler(event: dict, context) -> dict:
             (sub_id,),
         )
         row = cur.fetchone()
-        conn.close()
         if not row:
+            conn.close()
             return err("Заявка не найдена", 404)
         cols = ["id","name","phone","email","inn","inn_company","message","files_count","created_at",
                 "status","contact_position","contact_note",
                 "company_full_name","company_kpp","company_ogrn","company_address","company_director",
                 "bank_name","bank_bik","bank_account","bank_corr"]
-        return ok({"submission": dict(zip(cols, row))})
+        submission = dict(zip(cols, row))
+        cur.execute(
+            f"SELECT id, file_name, file_url, file_size, mime_type, created_at FROM {SCHEMA}.form_submission_files WHERE submission_id = %s ORDER BY created_at",
+            (sub_id,),
+        )
+        file_cols = ["id", "file_name", "file_url", "file_size", "mime_type", "created_at"]
+        submission["files"] = [dict(zip(file_cols, fr)) for fr in cur.fetchall()]
+        conn.close()
+        return ok({"submission": submission})
 
     # ── ОБНОВЛЕНИЕ ЗАЯВКИ ─────────────────────────────────────────────────────
     if action == "update_submission":

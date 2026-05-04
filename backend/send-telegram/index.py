@@ -1,9 +1,11 @@
 import json
 import os
 import base64
+import secrets
 import urllib.request
 import urllib.error
 import psycopg2
+import boto3
 
 SCHEMA = os.environ.get("MAIN_DB_SCHEMA", "t_p60076574_landing_price_calcul")
 
@@ -12,8 +14,17 @@ def get_conn():
     return psycopg2.connect(os.environ["DATABASE_URL"])
 
 
+def s3_client():
+    return boto3.client(
+        "s3",
+        endpoint_url="https://bucket.poehali.dev",
+        aws_access_key_id=os.environ["AWS_ACCESS_KEY_ID"],
+        aws_secret_access_key=os.environ["AWS_SECRET_ACCESS_KEY"],
+    )
+
+
 def handler(event: dict, context) -> dict:
-    """Отправляет заявку клиента в Telegram и сохраняет в базу данных."""
+    """Отправляет заявку клиента в Telegram, сохраняет в БД и файлы в S3."""
     if event.get('httpMethod') == 'OPTIONS':
         return {
             'statusCode': 200,
@@ -39,20 +50,50 @@ def handler(event: dict, context) -> dict:
     message = body.get('message', '').strip()
     files = body.get('files', [])
 
-    # Сохраняем заявку в БД
+    # Сохраняем заявку в БД и получаем id
+    submission_id = None
     try:
         conn = get_conn()
         cur = conn.cursor()
         cur.execute(
             f"""INSERT INTO {SCHEMA}.form_submissions
                 (name, phone, email, inn, inn_company, message, files_count)
-                VALUES (%s, %s, %s, %s, %s, %s, %s)""",
+                VALUES (%s, %s, %s, %s, %s, %s, %s) RETURNING id""",
             (name, phone, email, inn or None, inn_company or None, message or None, len(files)),
         )
+        submission_id = cur.fetchone()[0]
         conn.commit()
-        conn.close()
     except Exception as e:
-        print("DB error:", e)
+        print("DB insert error:", e)
+
+    # Сохраняем файлы в S3 и записываем ссылки в БД
+    if files and submission_id:
+        try:
+            s3 = s3_client()
+            access_key = os.environ["AWS_ACCESS_KEY_ID"]
+            for f in files:
+                file_data = base64.b64decode(f['data'])
+                filename = f.get('name', 'document')
+                mime = f.get('type', 'application/octet-stream')
+                key = f"submissions/{submission_id}/{secrets.token_hex(6)}_{filename}"
+                s3.put_object(Bucket="files", Key=key, Body=file_data, ContentType=mime)
+                file_url = f"https://cdn.poehali.dev/projects/{access_key}/bucket/{key}"
+                cur.execute(
+                    f"""INSERT INTO {SCHEMA}.form_submission_files
+                        (submission_id, file_name, file_url, file_size, mime_type)
+                        VALUES (%s, %s, %s, %s, %s)""",
+                    (submission_id, filename, file_url, len(file_data), mime),
+                )
+            conn.commit()
+        except Exception as e:
+            print("S3/files error:", e)
+        finally:
+            conn.close()
+    elif conn:
+        try:
+            conn.close()
+        except Exception:
+            pass
 
     inn_line = ""
     if inn:

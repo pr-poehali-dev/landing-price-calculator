@@ -24,6 +24,7 @@ interface FullSubmission {
   id: number; name: string; phone: string; email: string;
   inn: string | null; inn_company: string | null; message: string | null;
   files_count: number; created_at: string; status: string | null;
+  files?: { id: number; file_name: string; file_url: string; file_size: number | null; mime_type: string | null }[];
   contact_position: string | null; contact_note: string | null;
   company_full_name: string | null; company_kpp: string | null;
   company_ogrn: string | null; company_address: string | null;
@@ -36,6 +37,22 @@ interface DDSugg { value: string; data: Record<string, unknown> }
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleString("ru-RU", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
+}
+
+function fmtSize(bytes: number | null): string {
+  if (!bytes) return "";
+  if (bytes < 1024) return `${bytes} Б`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} КБ`;
+  return `${(bytes / 1024 / 1024).toFixed(1)} МБ`;
+}
+
+function fileIcon(mime: string | null): string {
+  if (!mime) return "File";
+  if (mime.startsWith("image/")) return "Image";
+  if (mime.includes("pdf")) return "FileText";
+  if (mime.includes("word") || mime.includes("doc")) return "FileType";
+  if (mime.includes("excel") || mime.includes("sheet") || mime.includes("xls")) return "Sheet";
+  return "Paperclip";
 }
 
 function Section({ title, icon, children }: { title: string; icon: string; children: React.ReactNode }) {
@@ -173,24 +190,37 @@ export default function SubmissionCard({ submissionId, sessionId, onClose, onUpd
         onClick={e => e.stopPropagation()}>
 
         {/* Header */}
-        <div className="px-5 py-4 flex items-center justify-between" style={{ background: "var(--navy)" }}>
-          <div>
+        <div className="px-5 py-4 flex items-start justify-between gap-3" style={{ background: "var(--navy)" }}>
+          <div className="min-w-0">
             <p className="text-xs font-semibold opacity-60" style={{ color: "#fff" }}>Заявка #{sub.id} · {formatDate(sub.created_at)}</p>
-            <h3 className="text-lg font-bold mt-0.5" style={{ color: "#fff", fontFamily: "Playfair Display, serif" }}>{sub.name || "—"}</h3>
+            <h3 className="text-lg font-bold mt-0.5 truncate" style={{ color: "#fff", fontFamily: "Playfair Display, serif" }}>{sub.name || "—"}</h3>
           </div>
-          <div className="flex items-center gap-3">
-            <select value={form.status || "new"} onChange={set("status")}
-              className="px-3 py-1.5 rounded-lg text-xs font-semibold outline-none"
-              style={{ background: "rgba(255,255,255,0.15)", color: "#fff", border: "1px solid rgba(255,255,255,0.25)" }}>
-              {STATUS_OPTIONS.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
-            </select>
-            <button onClick={onClose} className="opacity-60 hover:opacity-100 transition-opacity" style={{ color: "#fff" }}>
-              <Icon name="X" size={18} />
-            </button>
-          </div>
+          <button onClick={onClose} className="flex-shrink-0 opacity-60 hover:opacity-100 transition-opacity mt-1" style={{ color: "#fff" }}>
+            <Icon name="X" size={18} />
+          </button>
         </div>
 
         <div className="p-5 space-y-6">
+
+          {/* Статус */}
+          <div className="flex items-center gap-3">
+            <span className="text-xs font-semibold" style={{ color: "var(--text-muted)" }}>Статус заявки:</span>
+            <div className="flex flex-wrap gap-2">
+              {STATUS_OPTIONS.map(s => (
+                <button key={s.value} type="button"
+                  onClick={() => setForm(prev => ({ ...prev, status: s.value }))}
+                  className="px-3 py-1 rounded-full text-xs font-semibold transition-all border"
+                  style={{
+                    background: (form.status || "new") === s.value ? s.color : "transparent",
+                    color: (form.status || "new") === s.value ? "#fff" : s.color,
+                    borderColor: s.color,
+                  }}>
+                  {s.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
           {/* Исходное сообщение */}
           {sub.message && (
             <div className="rounded-xl px-4 py-3 text-sm" style={{ background: "var(--bg)", border: "1px solid var(--border-c)", color: "var(--text)" }}>
@@ -222,6 +252,34 @@ export default function SubmissionCard({ submissionId, sessionId, onClose, onUpd
                 placeholder="Любые пометки..." value={form.contact_note || ""} onChange={set("contact_note")} />
             </Field>
           </Section>
+
+          {/* Файлы */}
+          {sub.files && sub.files.length > 0 && (
+            <Section title={`Приложенные файлы (${sub.files.length})`} icon="Paperclip">
+              <div className="space-y-2">
+                {sub.files.map(f => (
+                  <a key={f.id} href={f.file_url} target="_blank" rel="noopener noreferrer"
+                    className="flex items-center gap-3 rounded-xl px-4 py-3 transition-all group"
+                    style={{ background: "var(--bg)", border: "1px solid var(--border-c)" }}
+                    onMouseEnter={e => (e.currentTarget.style.borderColor = "rgba(37,99,235,0.3)")}
+                    onMouseLeave={e => (e.currentTarget.style.borderColor = "var(--border-c)")}>
+                    <Icon name={fileIcon(f.mime_type) as "File"} size={18} style={{ color: "var(--blue)" }} />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate" style={{ color: "var(--navy)" }}>{f.file_name}</p>
+                      {f.file_size && <p className="text-xs" style={{ color: "var(--text-muted)" }}>{fmtSize(f.file_size)}</p>}
+                    </div>
+                    <Icon name="ExternalLink" size={14} className="opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: "var(--blue)" }} />
+                  </a>
+                ))}
+              </div>
+            </Section>
+          )}
+          {sub.files_count > 0 && (!sub.files || sub.files.length === 0) && (
+            <div className="rounded-xl px-4 py-3 text-sm" style={{ background: "rgba(217,119,6,0.06)", border: "1px solid rgba(217,119,6,0.2)", color: "#d97706" }}>
+              <Icon name="AlertCircle" size={14} className="inline mr-1.5" />
+              {sub.files_count} файл(а) были отправлены до обновления системы — доступны только в Telegram
+            </div>
+          )}
 
           {/* Реквизиты компании */}
           <Section title="Реквизиты компании" icon="Building">
@@ -293,11 +351,6 @@ export default function SubmissionCard({ submissionId, sessionId, onClose, onUpd
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: statusMeta.color }} />
             <span className="text-xs font-semibold" style={{ color: statusMeta.color }}>{statusMeta.label}</span>
-            {sub.files_count > 0 && (
-              <span className="ml-2 text-xs px-2 py-0.5 rounded-full" style={{ background: "var(--blue-dim)", color: "var(--blue)" }}>
-                {sub.files_count} файл(а)
-              </span>
-            )}
           </div>
           <div className="flex gap-2">
             <button onClick={onClose} className="px-4 py-2 rounded-lg text-sm font-medium"
