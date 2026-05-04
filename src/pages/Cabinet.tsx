@@ -7,6 +7,7 @@ import PartnerCabinet from "@/components/partner/PartnerCabinet";
 import AdminPartners from "@/components/admin/AdminPartners";
 import ClientList from "@/components/partner/ClientList";
 import ClientCard from "@/components/partner/ClientCard";
+import SubmissionCard from "@/components/admin/SubmissionCard";
 
 const AUTH_URL = "https://functions.poehali.dev/cf442b6d-1511-4826-a129-d63da8e9dfa0";
 const ADMIN_URL = "https://functions.poehali.dev/2fb10b23-2471-4f73-a39f-315ed4c51e8c";
@@ -41,6 +42,7 @@ function AdminPanel({ sessionId }: { sessionId: string }) {
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<Submission | null>(null);
+  const [editId, setEditId] = useState<number | null>(null);
 
   const load = useCallback(async (p: number) => {
     setLoading(true);
@@ -117,7 +119,7 @@ function AdminPanel({ sessionId }: { sessionId: string }) {
                       key={s.id}
                       className="cursor-pointer transition-colors"
                       style={{ borderBottom: "1px solid var(--border-c)" }}
-                      onClick={() => setSelected(s)}
+                      onClick={() => setEditId(s.id)}
                       onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.background = "var(--bg)")}
                       onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.background = "transparent")}
                     >
@@ -143,7 +145,7 @@ function AdminPanel({ sessionId }: { sessionId: string }) {
             {/* Mobile */}
             <div className="md:hidden divide-y" style={{ borderColor: "var(--border-c)" }}>
               {submissions.map((s) => (
-                <div key={s.id} className="px-5 py-4 cursor-pointer" onClick={() => setSelected(s)} style={{ background: "transparent" }}>
+                <div key={s.id} className="px-5 py-4 cursor-pointer" onClick={() => setEditId(s.id)} style={{ background: "transparent" }}>
                   <div className="flex items-start justify-between mb-1">
                     <p className="font-semibold text-sm" style={{ color: "var(--navy)" }}>{s.name || "—"}</p>
                     <span className="text-xs" style={{ color: "var(--text-muted)" }}>{formatDate(s.created_at)}</span>
@@ -173,37 +175,13 @@ function AdminPanel({ sessionId }: { sessionId: string }) {
         )}
       </div>
 
-      {/* Detail modal */}
-      {selected && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center px-4" style={{ background: "rgba(0,0,0,0.4)" }} onClick={() => setSelected(null)}>
-          <div className="w-full max-w-md rounded-2xl p-7 relative" style={{ background: "#fff", border: "1px solid var(--border-c)" }} onClick={(e) => e.stopPropagation()}>
-            <button onClick={() => setSelected(null)} className="absolute top-4 right-4 transition-opacity hover:opacity-60" style={{ color: "var(--text-muted)" }}>
-              <Icon name="X" size={18} />
-            </button>
-            <p className="text-xs font-semibold mb-4 uppercase tracking-widest" style={{ color: "var(--blue)" }}>Заявка #{selected.id}</p>
-            <div className="space-y-3">
-              {[
-                { label: "Имя", value: selected.name },
-                { label: "Телефон", value: selected.phone },
-                { label: "Email", value: selected.email },
-                { label: "ИНН", value: selected.inn ? `${selected.inn}${selected.inn_company ? ` (${selected.inn_company})` : ""}` : null },
-                { label: "Дата", value: formatDate(selected.created_at) },
-                { label: "Файлов", value: selected.files_count > 0 ? `${selected.files_count} шт.` : "нет" },
-              ].map(({ label, value }) => value ? (
-                <div key={label} className="flex gap-3">
-                  <span className="text-xs w-20 flex-shrink-0 pt-0.5" style={{ color: "var(--text-muted)" }}>{label}</span>
-                  <span className="text-sm font-medium" style={{ color: "var(--navy)" }}>{value}</span>
-                </div>
-              ) : null)}
-              {selected.message && (
-                <div>
-                  <p className="text-xs mb-1" style={{ color: "var(--text-muted)" }}>Сообщение</p>
-                  <p className="text-sm rounded-lg px-4 py-3" style={{ background: "var(--bg)", color: "var(--text)" }}>{selected.message}</p>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
+      {editId && (
+        <SubmissionCard
+          submissionId={editId}
+          sessionId={sessionId}
+          onClose={() => setEditId(null)}
+          onUpdated={() => { setEditId(null); load(page); }}
+        />
       )}
     </div>
   );

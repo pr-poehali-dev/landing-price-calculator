@@ -1,7 +1,7 @@
 """
-Административный API: список заявок, детали заявки.
+Административный API: список заявок, детали заявки, редактирование.
 Доступен только пользователям с role='admin'.
-action: submissions | submission_detail
+action: submissions | get_submission | update_submission
 """
 import json
 import os
@@ -83,7 +83,7 @@ def handler(event: dict, context) -> dict:
         total = cur.fetchone()[0]
 
         cur.execute(
-            f"""SELECT id, name, phone, email, inn, inn_company, message, files_count, created_at
+            f"""SELECT id, name, phone, email, inn, inn_company, message, files_count, created_at, status
                 FROM {SCHEMA}.form_submissions
                 ORDER BY created_at DESC
                 LIMIT %s OFFSET %s""",
@@ -96,10 +96,64 @@ def handler(event: dict, context) -> dict:
             {
                 "id": r[0], "name": r[1], "phone": r[2], "email": r[3],
                 "inn": r[4], "inn_company": r[5], "message": r[6],
-                "files_count": r[7], "created_at": r[8],
+                "files_count": r[7], "created_at": r[8], "status": r[9],
             }
             for r in rows
         ]
         return ok({"submissions": submissions, "total": total, "page": page, "limit": limit})
+
+    # ── ДЕТАЛИ ЗАЯВКИ ─────────────────────────────────────────────────────────
+    if action == "get_submission":
+        sub_id = body.get("id")
+        if not sub_id:
+            return err("Не указан id", 400)
+        conn = get_conn()
+        cur = conn.cursor()
+        cur.execute(
+            f"""SELECT id, name, phone, email, inn, inn_company, message, files_count, created_at,
+                       status, contact_position, contact_note,
+                       company_full_name, company_kpp, company_ogrn, company_address, company_director,
+                       bank_name, bank_bik, bank_account, bank_corr
+                FROM {SCHEMA}.form_submissions WHERE id = %s""",
+            (sub_id,),
+        )
+        row = cur.fetchone()
+        conn.close()
+        if not row:
+            return err("Заявка не найдена", 404)
+        cols = ["id","name","phone","email","inn","inn_company","message","files_count","created_at",
+                "status","contact_position","contact_note",
+                "company_full_name","company_kpp","company_ogrn","company_address","company_director",
+                "bank_name","bank_bik","bank_account","bank_corr"]
+        return ok({"submission": dict(zip(cols, row))})
+
+    # ── ОБНОВЛЕНИЕ ЗАЯВКИ ─────────────────────────────────────────────────────
+    if action == "update_submission":
+        sub_id = body.get("id")
+        if not sub_id:
+            return err("Не указан id", 400)
+        fields = [
+            "name", "phone", "email", "inn", "inn_company", "message", "status",
+            "contact_position", "contact_note",
+            "company_full_name", "company_kpp", "company_ogrn", "company_address", "company_director",
+            "bank_name", "bank_bik", "bank_account", "bank_corr",
+        ]
+        set_parts, params = [], []
+        for f in fields:
+            if f in body:
+                set_parts.append(f"{f} = %s")
+                params.append(body[f] or None)
+        if not set_parts:
+            return err("Нет данных для обновления", 400)
+        set_parts.append("updated_at = NOW()")
+        conn = get_conn()
+        cur = conn.cursor()
+        cur.execute(
+            f"UPDATE {SCHEMA}.form_submissions SET {', '.join(set_parts)} WHERE id = %s",
+            params + [sub_id],
+        )
+        conn.commit()
+        conn.close()
+        return ok({"ok": True})
 
     return err("Неизвестное действие", 400)
