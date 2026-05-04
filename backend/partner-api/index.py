@@ -494,17 +494,25 @@ def handler(event: dict, context) -> dict:
         total = sum(by_status.values())
 
         cur.execute(
-            f"SELECT COALESCE(SUM(partner_reward),0), COALESCE(SUM(CASE WHEN reward_paid THEN partner_reward ELSE 0 END),0) "
-            f"FROM {SCHEMA}.partner_clients {where}", params
+            f"SELECT COALESCE(SUM(partner_reward),0) FROM {SCHEMA}.partner_clients {where}", params
         )
-        reward_row = cur.fetchone()
+        total_reward = float(cur.fetchone()[0])
+
+        # paid_reward — из реальных выплат
+        pay_where = "WHERE partner_id = %s" if partner_id else "WHERE 1=1"
+        pay_params = [partner_id] if partner_id else []
+        cur.execute(
+            f"SELECT COALESCE(SUM(amount),0) FROM {SCHEMA}.partner_payments {pay_where}", pay_params
+        )
+        paid_reward = float(cur.fetchone()[0])
+
         conn.close()
         return ok({
             "stats": {
                 "total": total,
                 "by_status": by_status,
-                "total_reward": float(reward_row[0]),
-                "paid_reward": float(reward_row[1]),
+                "total_reward": total_reward,
+                "paid_reward": paid_reward,
             }
         })
 
