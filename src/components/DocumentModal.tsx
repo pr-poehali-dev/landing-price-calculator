@@ -147,25 +147,24 @@ export default function DocumentModal({ open, onClose }: DocumentModalProps) {
           </DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="px-8 pb-8 pt-6 space-y-4 overflow-y-auto flex-1">
+        <form onSubmit={handleSubmit} className="px-8 pb-8 pt-5 space-y-3 overflow-y-auto flex-1">
 
           {/* Name */}
           <div className="relative">
             <input
-              className={INPUT_BASE}
               style={inputStyle("name")}
-              placeholder="Ваше имя"
+              placeholder="Введите имя"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              onFocus={() => setNameFocus(true)}
-              onBlur={() => { setNameFocus(false); blurField("name"); }}
+              onFocus={(e) => { setNameFocus(true); e.currentTarget.style.borderColor = "#D4AF37"; e.currentTarget.style.boxShadow = "0 0 0 3px rgba(212,175,55,0.12)"; }}
+              onBlur={(e) => { setTimeout(() => setNameFocus(false), 150); blurField("name"); e.currentTarget.style.borderColor = touched.name && errors.name ? "#ef4444" : "rgba(212,175,55,0.2)"; e.currentTarget.style.boxShadow = "none"; }}
               disabled={loading}
               autoComplete="off"
             />
             {nameFocus && (
               <SuggestDropdown
                 suggestions={nameSuggest.suggestions}
-                onSelect={(v) => { setName(v); nameSuggest.clear(); }}
+                onSelect={(v) => { setName(v); nameSuggest.clear(); setNameFocus(false); }}
               />
             )}
             {touched.name && errors.name && (
@@ -178,13 +177,13 @@ export default function DocumentModal({ open, onClose }: DocumentModalProps) {
           {/* Phone */}
           <div>
             <input
-              className={INPUT_BASE}
               style={inputStyle("phone")}
               placeholder="+7 (___) ___-__-__"
               type="tel"
               value={phone}
               onChange={handlePhoneChange}
-              onBlur={() => blurField("phone")}
+              onFocus={(e) => { e.currentTarget.style.borderColor = "#D4AF37"; e.currentTarget.style.boxShadow = "0 0 0 3px rgba(212,175,55,0.12)"; }}
+              onBlur={(e) => { blurField("phone"); e.currentTarget.style.borderColor = touched.phone && errors.phone ? "#ef4444" : "rgba(212,175,55,0.2)"; e.currentTarget.style.boxShadow = "none"; }}
               disabled={loading}
             />
             {touched.phone && errors.phone && (
@@ -197,21 +196,20 @@ export default function DocumentModal({ open, onClose }: DocumentModalProps) {
           {/* Email */}
           <div className="relative">
             <input
-              className={INPUT_BASE}
               style={inputStyle("email")}
               placeholder="Email"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              onFocus={() => setEmailFocus(true)}
-              onBlur={() => { setEmailFocus(false); blurField("email"); }}
+              onFocus={(e) => { setEmailFocus(true); e.currentTarget.style.borderColor = "#D4AF37"; e.currentTarget.style.boxShadow = "0 0 0 3px rgba(212,175,55,0.12)"; }}
+              onBlur={(e) => { setTimeout(() => setEmailFocus(false), 150); blurField("email"); e.currentTarget.style.borderColor = touched.email && errors.email ? "#ef4444" : "rgba(212,175,55,0.2)"; e.currentTarget.style.boxShadow = "none"; }}
               disabled={loading}
               autoComplete="off"
             />
             {emailFocus && (
               <SuggestDropdown
                 suggestions={emailSuggest.suggestions}
-                onSelect={(v) => { setEmail(v); emailSuggest.clear(); }}
+                onSelect={(v) => { setEmail(v); emailSuggest.clear(); setEmailFocus(false); }}
               />
             )}
             {touched.email && errors.email && (
