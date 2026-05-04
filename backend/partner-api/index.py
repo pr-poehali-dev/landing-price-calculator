@@ -228,6 +228,23 @@ def handler(event: dict, context) -> dict:
             conn.close()
             return err("Укажите ФИО / наименование клиента")
 
+        # Проверяем дубль по ИНН у любого партнёра
+        inn = (body.get("inn") or "").strip() or None
+        if inn:
+            cur.execute(
+                f"""SELECT pc.id, p.short_name
+                    FROM {SCHEMA}.partner_clients pc
+                    JOIN {SCHEMA}.partners p ON p.id = pc.partner_id
+                    WHERE pc.inn = %s
+                    LIMIT 1""",
+                (inn,),
+            )
+            dup = cur.fetchone()
+            if dup:
+                conn.close()
+                partner_name = dup[1] or "другим партнёром"
+                return err(f"Организация с ИНН {inn} уже зарегистрирована ({partner_name}). Двойное начисление бонуса невозможно.")
+
         dadata_raw = body.get("dadata_raw")
         dadata_json = json.dumps(dadata_raw, ensure_ascii=False) if dadata_raw else None
 
@@ -240,7 +257,7 @@ def handler(event: dict, context) -> dict:
             (
                 partner_id,
                 full_name,
-                body.get("inn"),
+                inn,
                 body.get("phone"),
                 body.get("email"),
                 body.get("contact_person"),
