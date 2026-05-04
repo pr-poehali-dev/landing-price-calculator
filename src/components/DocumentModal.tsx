@@ -267,7 +267,7 @@ export default function DocumentModal({ open, onClose }: DocumentModalProps) {
                 {consent && <Icon name="Check" size={11} style={{ color: "#fff" }} />}
               </div>
             </div>
-            <span className="text-xs font-body leading-relaxed" style={{ color: "var(--text-muted)" }}>
+            <span className="text-xs font-body leading-relaxed" style={{ color: "#ffffff" }}>
               Я соглашаюсь на обработку персональных данных в соответствии с{" "}
               <a href="/privacy" target="_blank" className="underline" style={{ color: "var(--blue)" }}>Политикой конфиденциальности</a>
             </span>
