@@ -340,9 +340,9 @@ export default function PartnerProfile({ sessionId, onSaved, isAdmin = false }: 
       {/* Реквизиты */}
       <div>
         <h3 className="text-sm font-bold mb-4 uppercase tracking-wide" style={{ color: "var(--text-muted)" }}>Реквизиты</h3>
-        <div className="grid sm:grid-cols-2 gap-4">
 
-          {/* ИНН с DaData */}
+        {/* ИНН с DaData — вне грида чтобы дропдаун не обрезался */}
+        <div className="mb-4">
           <Field label="ИНН" required missing={isMissing("inn")}>
             <div className="relative">
               <input className={INPUT} style={isMissing("inn") ? inputStyleMissing : inputStyle}
@@ -353,7 +353,9 @@ export default function PartnerProfile({ sessionId, onSaved, isAdmin = false }: 
               <DaDropdown suggestions={partyOpen ? partySugg : []} onSelect={applyParty} loading={partyLoading} />
             </div>
           </Field>
+        </div>
 
+        <div className="grid sm:grid-cols-2 gap-4">
           {form.partner_type === "legal" && (
             <Field label="КПП">
               <input className={INPUT} style={inputStyle} placeholder="КПП" value={form.kpp} onChange={set("kpp")} />
@@ -407,17 +409,22 @@ export default function PartnerProfile({ sessionId, onSaved, isAdmin = false }: 
       {/* Банковские реквизиты */}
       <div>
         <h3 className="text-sm font-bold mb-4 uppercase tracking-wide" style={{ color: "var(--text-muted)" }}>Банковские реквизиты</h3>
-        <div className="grid sm:grid-cols-2 gap-4">
+
+        {/* БИК с DaData — вне грида */}
+        <div className="mb-4">
           <Field label="БИК" missing={isMissing("bank_bik")}>
             <div className="relative">
               <input className={INPUT} style={isMissing("bank_bik") ? inputStyleMissing : inputStyle}
-                placeholder="044525225 — банк подтянется автоматически"
+                placeholder="044525225 — банк и корр. счёт подтянутся автоматически"
                 value={form.bank_bik} onChange={set("bank_bik")}
                 onFocus={() => bankSugg.length > 0 && setBankOpen(true)}
                 onBlur={() => setTimeout(() => setBankOpen(false), 150)} />
               <DaDropdown suggestions={bankOpen ? bankSugg : []} onSelect={applyBank} loading={bankLoading} />
             </div>
           </Field>
+        </div>
+
+        <div className="grid sm:grid-cols-3 gap-4">
           <Field label="Название банка">
             <input className={INPUT} style={inputStyle} placeholder="Заполнится по БИК" value={form.bank_name} onChange={set("bank_name")} />
           </Field>
@@ -434,7 +441,7 @@ export default function PartnerProfile({ sessionId, onSaved, isAdmin = false }: 
       {/* Контактное лицо */}
       <div>
         <h3 className="text-sm font-bold mb-4 uppercase tracking-wide" style={{ color: "var(--text-muted)" }}>Контактное лицо</h3>
-        <div className="grid sm:grid-cols-3 gap-4">
+        <div className="mb-4">
           <Field label="ФИО" missing={isMissing("contact_name")}>
             <div className="relative">
               <input className={INPUT} style={isMissing("contact_name") ? inputStyleMissing : inputStyle}
@@ -445,6 +452,8 @@ export default function PartnerProfile({ sessionId, onSaved, isAdmin = false }: 
               <DaDropdown suggestions={ctcOpen ? ctcSugg : []} onSelect={applyCtc} loading={ctcLoading} />
             </div>
           </Field>
+        </div>
+        <div className="grid sm:grid-cols-2 gap-4">
           <Field label="Телефон" missing={isMissing("contact_phone")}>
             <input className={INPUT} style={isMissing("contact_phone") ? inputStyleMissing : inputStyle}
               placeholder="+7 (999) 000-00-00" value={form.contact_phone} onChange={set("contact_phone")} />
