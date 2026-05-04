@@ -105,6 +105,12 @@ export default function HeroSection({ onScrollTo, onOpenModal }: HeroSectionProp
             style={{ color: "var(--gold)", borderBottom: "1px solid rgba(212,175,55,0.08)" }}>
             order@advokat-vsem.ru
           </a>
+          <Link to="/login" onClick={() => setMobileMenuOpen(false)}
+            className="flex items-center gap-2 w-full font-body text-sm py-3"
+            style={{ color: "var(--text-muted)", borderBottom: "1px solid rgba(212,175,55,0.08)" }}>
+            <Icon name="LayoutDashboard" size={15} />
+            Личный кабинет
+          </Link>
           <button className="btn-gold w-full py-3.5 text-xs mt-4" onClick={onOpenModal}>
             Отправить документ
           </button>
