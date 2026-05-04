@@ -46,18 +46,12 @@ function Calculator({ onOpenModal }: { onOpenModal: () => void }) {
   ];
 
   return (
-    <div
-      className="p-8 lg:p-10"
-      style={{
-        background: "var(--bg-white)",
-        border: "1px solid var(--border-c)",
-        borderRadius: 8,
-      }}
-    >
-      <p
-        className="font-body text-xs tracking-widest uppercase mb-6"
-        style={{ color: "var(--blue)", letterSpacing: "0.2em" }}
-      >
+    <div className="p-8 lg:p-10 rounded relative overflow-hidden"
+      style={{ background: "var(--dark-card)", border: "1px solid rgba(212,175,55,0.15)" }}>
+      <div className="absolute top-0 left-0 right-0 h-px"
+        style={{ background: "linear-gradient(90deg, var(--gold), transparent)" }} />
+
+      <p className="font-body text-xs tracking-widest uppercase mb-6" style={{ color: "var(--gold)", letterSpacing: "0.2em" }}>
         Калькулятор — интеллектуальная собственность
       </p>
 
@@ -65,63 +59,38 @@ function Calculator({ onOpenModal }: { onOpenModal: () => void }) {
         {/* Left: slider */}
         <div>
           <div className="flex justify-between items-end mb-4 gap-3">
-            <span className="font-body text-sm" style={{ color: "var(--text-muted)" }}>
-              Сумма иска
-            </span>
-            <span className="font-display text-2xl font-bold flex-shrink-0" style={{ color: "var(--navy)" }}>
+            <span className="font-body text-sm" style={{ color: "var(--text-muted)" }}>Сумма иска</span>
+            <span className="font-display text-2xl font-bold flex-shrink-0" style={{ color: "var(--gold)" }}>
               {formatShort(amount)} ₽
             </span>
           </div>
 
-          <input
-            ref={sliderRef}
-            type="range"
-            min={50000}
-            max={5000000}
-            step={10000}
-            value={amount}
-            onChange={(e) => setAmount(Number(e.target.value))}
-            className="w-full mb-2"
-          />
+          <input ref={sliderRef} type="range" min={50000} max={5000000} step={10000}
+            value={amount} onChange={e => setAmount(Number(e.target.value))}
+            className="w-full mb-2" />
           <div className="flex justify-between font-body text-xs" style={{ color: "var(--text-muted)" }}>
-            <span>50 тыс</span>
-            <span>5 млн</span>
+            <span>50 тыс</span><span>5 млн</span>
           </div>
 
-          {/* Quick picks */}
           <div className="flex flex-wrap gap-2 mt-5">
-            {examples.map((ex) => (
-              <button
-                key={ex.sum}
-                onClick={() => setAmount(ex.sum)}
-                className="font-body text-xs px-3 py-1.5 transition-all duration-200"
+            {examples.map(ex => (
+              <button key={ex.sum} onClick={() => setAmount(ex.sum)}
+                className="font-body text-xs px-3 py-1.5 rounded transition-all duration-200"
                 style={{
-                  border: `1px solid ${amount === ex.sum ? "var(--blue)" : "var(--border-c)"}`,
-                  color: amount === ex.sum ? "#fff" : "var(--text)",
-                  background: amount === ex.sum ? "var(--blue)" : "transparent",
-                  borderRadius: 4,
+                  border: `1px solid ${amount === ex.sum ? "var(--gold)" : "rgba(212,175,55,0.15)"}`,
+                  color: amount === ex.sum ? "#080f1e" : "var(--text-muted)",
+                  background: amount === ex.sum ? "var(--gold)" : "transparent",
                   fontWeight: amount === ex.sum ? 600 : 400,
-                }}
-              >
+                }}>
                 {ex.label}
               </button>
             ))}
           </div>
 
-          {/* Formula hint */}
-          <div
-            className="mt-6 p-4 font-body text-xs leading-6"
-            style={{
-              background: "var(--bg)",
-              border: "1px solid var(--border-c)",
-              color: "var(--text-muted)",
-              borderRadius: 6,
-            }}
-          >
-            <strong style={{ color: "var(--navy)" }}>Формула:</strong>
-            <br />
-            До 500 000 ₽ → 10% (мин. 20 000 ₽)
-            <br />
+          <div className="mt-6 p-4 font-body text-xs leading-6 rounded"
+            style={{ background: "var(--dark-card-2)", border: "1px solid rgba(212,175,55,0.08)", color: "var(--text-muted)" }}>
+            <strong style={{ color: "var(--gold)" }}>Формула:</strong><br />
+            До 500 000 ₽ → 10% (мин. 20 000 ₽)<br />
             Свыше 500 000 ₽ → 50 000 ₽ + 2% от превышения
           </div>
         </div>
@@ -129,36 +98,19 @@ function Calculator({ onOpenModal }: { onOpenModal: () => void }) {
         {/* Right: result */}
         <div className="flex flex-col justify-between">
           <div>
-            <p
-              className="font-body text-xs tracking-widest uppercase mb-2"
-              style={{ color: "var(--text-muted)" }}
-            >
+            <p className="font-body text-xs tracking-widest uppercase mb-2" style={{ color: "var(--text-muted)" }}>
               Стоимость представительства
             </p>
-            <p
-              className="font-display mb-1"
-              style={{
-                fontSize: "clamp(2.5rem, 5vw, 3.5rem)",
-                fontWeight: 700,
-                color: "var(--success)",
-                lineHeight: 1,
-              }}
-            >
+            <p className="font-display mb-1 font-bold" style={{ fontSize: "clamp(2.5rem, 5vw, 3.5rem)", color: "var(--gold)", lineHeight: 1 }}>
               {formatRub(fee)}
             </p>
             <p className="font-body text-xs mt-3" style={{ color: "var(--text-muted)" }}>
               анализ + подготовка + подача документов · под ключ
             </p>
           </div>
-
           <div className="mt-8 space-y-3">
-            <button className="btn-gold w-full py-4 text-xs" onClick={onOpenModal}>
-              Отправить документ
-            </button>
-            <p
-              className="font-body text-xs text-center"
-              style={{ color: "var(--text-muted)" }}
-            >
+            <button className="btn-gold w-full py-4 text-xs" onClick={onOpenModal}>Отправить документ</button>
+            <p className="font-body text-xs text-center" style={{ color: "var(--text-muted)" }}>
               Точная стоимость — после изучения материалов
             </p>
           </div>
@@ -171,19 +123,18 @@ function Calculator({ onOpenModal }: { onOpenModal: () => void }) {
 export default function CalculatorSection({ onOpenModal }: { onOpenModal: () => void }) {
   const ref = useScrollReveal();
   return (
-    <section ref={ref as React.Ref<HTMLElement>} id="calculator" className="reveal py-24 px-6 md:px-10" style={{ background: "var(--bg)" }}>
+    <section ref={ref as React.Ref<HTMLElement>} id="calculator" className="reveal py-24 px-6 md:px-12" style={{ background: "var(--dark-card)" }}>
       <div className="max-w-6xl mx-auto">
         <div className="mb-10">
-          <p
-            className="font-body text-xs tracking-widest uppercase mb-3"
-            style={{ color: "var(--blue)", letterSpacing: "0.2em" }}
-          >
-            Интерактивный расчёт
-          </p>
-          <h2 className="font-display text-2xl sm:text-3xl lg:text-5xl" style={{ color: "var(--navy)" }}>
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-6 h-px" style={{ background: "var(--gold)" }} />
+            <span className="font-body text-xs tracking-widest uppercase" style={{ color: "var(--gold)", letterSpacing: "0.2em" }}>
+              Интерактивный расчёт
+            </span>
+          </div>
+          <h2 className="font-display" style={{ fontSize: "clamp(1.8rem, 4vw, 3rem)", color: "#fff", fontWeight: 700 }}>
             Калькулятор стоимости
           </h2>
-          <div className="gold-line mt-5" />
         </div>
         <Calculator onOpenModal={onOpenModal} />
       </div>

@@ -2,6 +2,8 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import Icon from "@/components/ui/icon";
 
+const HERO_BG = "https://cdn.poehali.dev/projects/ec09f91e-5c19-456f-a8f1-620fce7cd143/files/3d7b8420-e3b6-453a-9a26-41ba2b4770cb.jpg";
+
 interface HeroSectionProps {
   onScrollTo: (id: string) => void;
   onOpenModal: () => void;
@@ -15,60 +17,52 @@ export default function HeroSection({ onScrollTo, onOpenModal }: HeroSectionProp
     setMobileMenuOpen(false);
   };
 
+  const NAV_LINKS = [
+    ["services", "Услуги"],
+    ["price", "Прайс"],
+    ["calculator", "Калькулятор"],
+    ["faq", "FAQ"],
+  ];
+
   return (
     <>
       {/* ── NAV ─────────────────────────────────────────────────────────── */}
-      <nav
-        className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 md:px-10 py-4"
-        style={{
-          background: "rgba(255,255,255,0.97)",
-          backdropFilter: "blur(16px)",
-          borderBottom: "1px solid var(--border-c)",
-        }}
-      >
+      <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 md:px-12 py-4"
+        style={{ background: "rgba(8,15,30,0.92)", backdropFilter: "blur(20px)", borderBottom: "1px solid rgba(212,175,55,0.1)" }}>
+
+        {/* Logo */}
         <div className="flex items-center">
-          <img
-            src="https://cdn.poehali.dev/projects/ec09f91e-5c19-456f-a8f1-620fce7cd143/bucket/269a5714-3147-42ee-9d3a-43b1f31ad3e8.jpeg"
-            alt="Legis24"
-            style={{ height: 48, width: "auto", mixBlendMode: "multiply" }}
-          />
+          <span className="font-display text-xl font-bold tracking-wider" style={{ color: "var(--gold)" }}>
+            LEGIS<span style={{ color: "var(--text)" }}>24</span>
+          </span>
         </div>
 
-        <div
-          className="hidden md:flex items-center gap-8 font-body text-xs tracking-widest uppercase"
-          style={{ color: "var(--text-muted)" }}
-        >
-          {[["services", "Услуги"], ["price", "Прайс"], ["calculator", "Калькулятор"], ["faq", "FAQ"]].map(
-            ([id, label]) => (
-              <button
-                key={id}
-                onClick={() => scrollTo(id)}
-                className="hover:text-navy transition-colors"
-                style={{ color: "var(--text-muted)" }}
-                onMouseEnter={(e) => (e.currentTarget.style.color = "var(--navy)")}
-                onMouseLeave={(e) => (e.currentTarget.style.color = "var(--text-muted)")}
-              >
-                {label}
-              </button>
-            )
-          )}
-          <Link
-            to="/blog"
-            className="transition-colors"
+        {/* Desktop nav */}
+        <div className="hidden md:flex items-center gap-8 font-body text-xs tracking-widest uppercase" style={{ color: "var(--text-muted)" }}>
+          {NAV_LINKS.map(([id, label]) => (
+            <button key={id} onClick={() => scrollTo(id)}
+              className="transition-colors"
+              style={{ color: "var(--text-muted)", letterSpacing: "0.12em" }}
+              onMouseEnter={e => (e.currentTarget.style.color = "var(--gold)")}
+              onMouseLeave={e => (e.currentTarget.style.color = "var(--text-muted)")}>
+              {label}
+            </button>
+          ))}
+          <Link to="/blog" className="transition-colors"
             style={{ color: "var(--text-muted)" }}
-            onMouseEnter={(e) => (e.currentTarget.style.color = "var(--navy)")}
-            onMouseLeave={(e) => (e.currentTarget.style.color = "var(--text-muted)")}
-          >
+            onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = "var(--gold)"}
+            onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = "var(--text-muted)"}>
             Блог
           </Link>
         </div>
 
-        <div className="hidden md:flex items-center gap-4">
-          <a
-            href="mailto:order@advokat-vsem.ru"
-            className="font-body text-xs transition-opacity hover:opacity-70"
+        {/* Desktop right */}
+        <div className="hidden md:flex items-center gap-5">
+          <a href="mailto:order@advokat-vsem.ru"
+            className="font-body text-xs transition-colors"
             style={{ color: "var(--text-muted)" }}
-          >
+            onMouseEnter={e => (e.currentTarget.style.color = "var(--gold)")}
+            onMouseLeave={e => (e.currentTarget.style.color = "var(--text-muted)")}>
             order@advokat-vsem.ru
           </a>
           <button className="btn-gold px-5 py-2.5 text-xs" onClick={onOpenModal}>
@@ -76,166 +70,136 @@ export default function HeroSection({ onScrollTo, onOpenModal }: HeroSectionProp
           </button>
         </div>
 
-        <button
-          className="md:hidden"
-          style={{ color: "var(--navy)" }}
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-        >
+        {/* Burger */}
+        <button className="md:hidden" style={{ color: "var(--gold)" }}
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
           <Icon name={mobileMenuOpen ? "X" : "Menu"} size={20} />
         </button>
       </nav>
 
       {/* Mobile menu */}
       {mobileMenuOpen && (
-        <div
-          className="fixed top-14 left-0 right-0 z-40 px-6 py-6 space-y-4"
-          style={{
-            background: "#ffffff",
-            borderBottom: "1px solid var(--border-c)",
-          }}
-        >
-          {[["services", "Услуги"], ["price", "Прайс"], ["calculator", "Калькулятор"], ["faq", "FAQ"]].map(
-            ([id, label]) => (
-              <button
-                key={id}
-                onClick={() => scrollTo(id)}
-                className="block w-full text-left font-body text-sm py-2"
-                style={{ color: "var(--text)", borderBottom: "1px solid var(--border-c)" }}
-              >
-                {label}
-              </button>
-            )
-          )}
-          <Link
-            to="/blog"
-            onClick={() => setMobileMenuOpen(false)}
-            className="block w-full text-left font-body text-sm py-2"
-            style={{ color: "var(--text)", borderBottom: "1px solid var(--border-c)" }}
-          >
+        <div className="fixed top-[60px] left-0 right-0 z-40 px-6 py-6 space-y-1"
+          style={{ background: "#080f1e", borderBottom: "1px solid rgba(212,175,55,0.15)" }}>
+          {NAV_LINKS.map(([id, label]) => (
+            <button key={id} onClick={() => scrollTo(id)}
+              className="block w-full text-left font-body text-sm py-3"
+              style={{ color: "var(--text)", borderBottom: "1px solid rgba(212,175,55,0.08)" }}>
+              {label}
+            </button>
+          ))}
+          <Link to="/blog" onClick={() => setMobileMenuOpen(false)}
+            className="block w-full text-left font-body text-sm py-3"
+            style={{ color: "var(--text)", borderBottom: "1px solid rgba(212,175,55,0.08)" }}>
             Блог
           </Link>
-          <a
-            href="mailto:order@advokat-vsem.ru"
-            className="block w-full text-left font-body text-sm py-2 transition-opacity hover:opacity-70"
-            style={{ color: "var(--blue)" }}
-          >
+          <a href="mailto:order@advokat-vsem.ru"
+            className="block w-full text-left font-body text-sm py-3"
+            style={{ color: "var(--gold)", borderBottom: "1px solid rgba(212,175,55,0.08)" }}>
             order@advokat-vsem.ru
           </a>
-          <button className="btn-gold w-full py-3 text-xs mt-2" onClick={onOpenModal}>Отправить документ</button>
+          <button className="btn-gold w-full py-3.5 text-xs mt-4" onClick={onOpenModal}>
+            Отправить документ
+          </button>
         </div>
       )}
 
       {/* ── HERO ────────────────────────────────────────────────────────── */}
-      <section
-        className="relative min-h-screen flex items-center"
-        style={{
-          backgroundImage: `url('https://cdn.poehali.dev/projects/ec09f91e-5c19-456f-a8f1-620fce7cd143/bucket/638bfb96-6919-449f-b82d-039a0507d1c6.png')`,
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-        }}
-      >
-        {[38, 68].map((pct) => (
-          <div
-            key={pct}
-            className="absolute top-0 bottom-0 w-px hidden lg:block"
-            style={{
-              left: `${pct}%`,
-              background: "linear-gradient(to bottom, transparent 5%, rgba(15,44,90,0.1) 50%, transparent 95%)",
-            }}
-          />
+      <section className="relative min-h-screen flex items-center overflow-hidden"
+        style={{ background: "#080f1e" }}>
+
+        {/* Background image with overlay */}
+        <div className="absolute inset-0"
+          style={{
+            backgroundImage: `url('${HERO_BG}')`,
+            backgroundSize: "cover",
+            backgroundPosition: "center 30%",
+            opacity: 0.35,
+          }} />
+
+        {/* Gradient overlays */}
+        <div className="absolute inset-0" style={{ background: "linear-gradient(to right, rgba(8,15,30,0.95) 40%, rgba(8,15,30,0.5) 100%)" }} />
+        <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(8,15,30,1) 0%, transparent 60%)" }} />
+
+        {/* Gold glow top-right */}
+        <div className="absolute top-0 right-0 w-96 h-96 pointer-events-none"
+          style={{ background: "radial-gradient(ellipse at top right, rgba(212,175,55,0.08) 0%, transparent 70%)" }} />
+
+        {/* Vertical decorative lines */}
+        {[33, 66].map(pct => (
+          <div key={pct} className="absolute top-0 bottom-0 w-px hidden lg:block pointer-events-none"
+            style={{ left: `${pct}%`, background: "linear-gradient(to bottom, transparent 5%, rgba(212,175,55,0.06) 50%, transparent 95%)" }} />
         ))}
 
-        <div className="max-w-6xl mx-auto px-6 md:px-10 pt-28 pb-20 lg:py-40">
-          {/* Badge */}
-          <p
-            className="animate-fade-up font-body text-xs tracking-widest uppercase mb-4"
-            style={{ color: "var(--blue)", letterSpacing: "0.2em" }}
-          >
-            Сроки горят? Успеем к дедлайну
-          </p>
+        <div className="relative max-w-6xl mx-auto px-6 md:px-12 pt-32 pb-24 lg:py-44 w-full">
 
-          <h1 className="animate-fade-up-delay-1 mb-6">
-            <span
-              className="font-body"
-              style={{
-                fontSize: "clamp(0.9rem, 2vw, 1.1rem)",
-                display: "block",
-                color: "var(--text-muted)",
-                letterSpacing: "0.15em",
-                fontWeight: 400,
-                textTransform: "uppercase",
-                marginBottom: "0.5rem",
-              }}
-            >
-              Любой юридический документ за
+          {/* Badge */}
+          <div className="animate-fade-up inline-flex items-center gap-2 mb-8">
+            <div className="w-8 h-px" style={{ background: "var(--gold)" }} />
+            <span className="font-body text-xs tracking-widest uppercase" style={{ color: "var(--gold)", letterSpacing: "0.2em" }}>
+              Юридическая защита бизнеса
             </span>
-            <span
-              className="font-display"
+          </div>
+
+          {/* Headline */}
+          <h1 className="animate-fade-up-delay-1 mb-6 max-w-3xl">
+            <span className="font-display block"
               style={{
-                fontSize: "clamp(3.8rem, 13vw, 11rem)",
-                color: "var(--blue)",
-                fontStyle: "italic",
-                display: "block",
-                lineHeight: 0.95,
+                fontSize: "clamp(2.8rem, 7vw, 6rem)",
+                lineHeight: 1.05,
                 fontWeight: 700,
-                whiteSpace: "nowrap",
-              }}
-            >
-              24 часа
+                color: "#ffffff",
+                letterSpacing: "-0.01em",
+              }}>
+              Подготовка документов
+            </span>
+            <span className="font-display block"
+              style={{
+                fontSize: "clamp(2.8rem, 7vw, 6rem)",
+                lineHeight: 1.05,
+                fontWeight: 700,
+                fontStyle: "italic",
+                color: "var(--gold)",
+                letterSpacing: "-0.01em",
+              }}>
+              за 24 часа
             </span>
           </h1>
 
-          <p
-            className="animate-fade-up-delay-2 font-body text-sm md:text-base mb-3"
-            style={{ color: "var(--text-muted)", letterSpacing: "0.04em" }}
-          >
+          {/* Sub */}
+          <p className="animate-fade-up-delay-2 font-body text-base md:text-lg mb-2 max-w-xl"
+            style={{ color: "rgba(232,228,220,0.65)", letterSpacing: "0.01em", fontWeight: 300 }}>
             Претензии · ФНС · Суд · Интеллектуальная собственность
           </p>
-          <p
-            className="animate-fade-up-delay-2 font-body text-sm mb-10 max-w-lg"
-            style={{ color: "var(--text-muted)" }}
-          >
+          <p className="animate-fade-up-delay-2 font-body text-sm mb-10 max-w-lg"
+            style={{ color: "rgba(232,228,220,0.4)" }}>
             Работаем с бизнесом. Без ошибок. С учётом актуальной судебной практики.
           </p>
 
-          <div className="animate-fade-up-delay-3 flex flex-col sm:flex-row gap-4">
-            <button className="btn-gold px-10 py-4" onClick={onOpenModal}>
-              Отправить документ
+          {/* CTA buttons */}
+          <div className="animate-fade-up-delay-3 flex flex-col sm:flex-row gap-4 mb-16">
+            <button className="btn-gold px-10 py-4 text-sm" onClick={onOpenModal}>
+              Отправить документы
             </button>
-            <button
-              className="btn-outline px-10 py-4 font-body font-semibold text-xs tracking-widest uppercase"
-              style={{
-                border: "1px solid rgba(15,44,90,0.3)",
-                color: "var(--navy)",
-                background: "transparent",
-                borderRadius: 6,
-              }}
-              onMouseEnter={(e) => (e.currentTarget.style.borderColor = "var(--navy)")}
-              onMouseLeave={(e) => (e.currentTarget.style.borderColor = "rgba(15,44,90,0.3)")}
-              onClick={() => scrollTo("calculator")}
-            >
+            <button className="btn-outline px-10 py-4 text-sm" onClick={() => scrollTo("calculator")}>
               Рассчитать стоимость
             </button>
           </div>
 
-          {/* Stats row */}
-          <div
-            className="animate-fade-up-delay-3 mt-16 pt-10 flex flex-wrap gap-6 md:gap-10"
-            style={{ borderTop: "1px solid var(--border-c)" }}
-          >
+          {/* Stats */}
+          <div className="animate-fade-up-delay-3 flex flex-wrap gap-8 md:gap-14 pt-8"
+            style={{ borderTop: "1px solid rgba(212,175,55,0.15)" }}>
             {[
-              ["24 ч", "срок подготовки документа"],
+              ["24 ч", "срок подготовки"],
               ["20+", "лет практики"],
               ["98%", "успешных дел"],
+              ["по РФ", "работаем удалённо"],
             ].map(([val, label]) => (
               <div key={label}>
-                <p
-                  className="font-display text-3xl mb-0.5"
-                  style={{ color: "var(--blue)", fontWeight: 700 }}
-                >
+                <p className="font-display text-2xl md:text-3xl mb-1 font-bold" style={{ color: "var(--gold)" }}>
                   {val}
                 </p>
-                <p className="font-body text-xs" style={{ color: "var(--text-muted)" }}>
+                <p className="font-body text-xs" style={{ color: "rgba(232,228,220,0.4)", letterSpacing: "0.05em" }}>
                   {label}
                 </p>
               </div>
