@@ -2,9 +2,9 @@ import { useState, useEffect } from "react";
 import Icon from "@/components/ui/icon";
 import { apiPartner, DEAL_STATUS_META, fmtMoney, type Stats, type DealStatus } from "./types";
 
-interface Props { sessionId: string }
+interface Props { sessionId: string; missingCount?: number; onGoToProfile?: () => void }
 
-export default function PartnerStats({ sessionId }: Props) {
+export default function PartnerStats({ sessionId, missingCount = 0, onGoToProfile }: Props) {
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -30,6 +30,28 @@ export default function PartnerStats({ sessionId }: Props) {
 
   return (
     <div className="space-y-5">
+      {missingCount > 0 && (
+        <div className="rounded-xl px-5 py-4 flex items-center justify-between gap-4 flex-wrap"
+          style={{ background: "rgba(239,68,68,0.05)", border: "1px solid rgba(239,68,68,0.25)" }}>
+          <div className="flex items-center gap-3">
+            <Icon name="AlertCircle" size={18} style={{ color: "#ef4444" }} />
+            <div>
+              <p className="text-sm font-semibold" style={{ color: "#ef4444" }}>Профиль не заполнен</p>
+              <p className="text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>
+                Не хватает {missingCount} {missingCount === 1 ? "поля" : missingCount < 5 ? "полей" : "полей"} — заполните, чтобы получать выплаты
+              </p>
+            </div>
+          </div>
+          {onGoToProfile && (
+            <button onClick={onGoToProfile}
+              className="flex items-center gap-1.5 text-xs font-semibold px-4 py-2 rounded-lg flex-shrink-0 transition-opacity hover:opacity-80"
+              style={{ background: "#ef4444", color: "#fff" }}>
+              Заполнить профиль
+              <Icon name="ArrowRight" size={13} />
+            </button>
+          )}
+        </div>
+      )}
       {/* Top cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[

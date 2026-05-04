@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Icon from "@/components/ui/icon";
 import PartnerProfile from "./PartnerProfile";
 import PartnerStats from "./PartnerStats";
 import ClientList from "./ClientList";
 import ClientCard from "./ClientCard";
+import { apiPartner } from "./types";
 
 type Tab = "stats" | "clients" | "profile";
 
@@ -19,9 +20,27 @@ const TABS: { key: Tab; label: string; icon: string }[] = [
   { key: "profile", label: "Профиль",     icon: "Settings" },
 ];
 
+const REQUIRED_FIELDS = [
+  "inn", "full_name", "legal_address", "director_name",
+  "bank_bik", "bank_account", "contact_name", "contact_phone", "contact_email",
+];
+
 export default function PartnerCabinet({ sessionId, userLogin, isAdmin = false }: Props) {
   const [tab, setTab] = useState<Tab>("stats");
   const [selectedClientId, setSelectedClientId] = useState<number | null>(null);
+  const [missingCount, setMissingCount] = useState(0);
+
+  useEffect(() => {
+    if (isAdmin) return;
+    apiPartner(sessionId, { action: "get_profile" }).then(data => {
+      if (data.partner) {
+        const p = data.partner as Record<string, unknown>;
+        setMissingCount(REQUIRED_FIELDS.filter(k => !p[k]).length);
+      } else {
+        setMissingCount(REQUIRED_FIELDS.length);
+      }
+    });
+  }, [sessionId, isAdmin]);
 
   return (
     <div>
@@ -63,7 +82,7 @@ export default function PartnerCabinet({ sessionId, userLogin, isAdmin = false }
           />
         ) : (
           <>
-            {tab === "stats"   && <PartnerStats sessionId={sessionId} />}
+            {tab === "stats"   && <PartnerStats sessionId={sessionId} missingCount={missingCount} onGoToProfile={() => setTab("profile")} />}
             {tab === "clients" && <ClientList sessionId={sessionId} onSelectClient={setSelectedClientId} />}
             {tab === "profile" && <PartnerProfile sessionId={sessionId} />}
           </>
