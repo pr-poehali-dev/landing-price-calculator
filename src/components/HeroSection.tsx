@@ -33,7 +33,7 @@ export default function HeroSection({ onScrollTo, onOpenModal }: HeroSectionProp
         {/* Logo */}
         <div className="flex items-center">
           <img src="https://cdn.poehali.dev/projects/ec09f91e-5c19-456f-a8f1-620fce7cd143/bucket/2dd31743-a0a9-4408-8122-638fc7c5235a.jpeg"
-            alt="Legis24" style={{ height: 112, width: "auto" }} />
+            alt="Legis24" style={{ height: 78, width: "auto" }} />
         </div>
 
         {/* Desktop nav */}
