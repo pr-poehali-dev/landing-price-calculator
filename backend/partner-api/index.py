@@ -1005,4 +1005,85 @@ def handler(event: dict, context) -> dict:
         conn.close()
         return ok({"ok": True})
 
+    # ── GET CUSTOM RATES ──────────────────────────────────────────────────────
+    if action == "get_custom_rates":
+        conn = get_conn()
+        cur = conn.cursor()
+        if is_admin:
+            partner_id = body.get("partner_id")
+        else:
+            cur.execute(f"SELECT id FROM {SCHEMA}.partners WHERE user_id = %s", (user["id"],))
+            prow = cur.fetchone()
+            partner_id = prow[0] if prow else None
+        if not partner_id:
+            conn.close()
+            return ok({"custom_rates": []})
+        cur.execute(
+            f"SELECT id, service_name, amount, note, created_at FROM {SCHEMA}.partner_custom_rates WHERE partner_id = %s AND service_name != '__deleted__' ORDER BY id",
+            (partner_id,),
+        )
+        rows = cur.fetchall()
+        conn.close()
+        return ok({"custom_rates": [
+            {"id": r[0], "service_name": r[1], "amount": float(r[2]), "note": r[3], "created_at": str(r[4])}
+            for r in rows
+        ]})
+
+    # ── SAVE CUSTOM RATE ──────────────────────────────────────────────────────
+    if action == "save_custom_rate":
+        conn = get_conn()
+        cur = conn.cursor()
+        if is_admin:
+            partner_id = body.get("partner_id")
+        else:
+            cur.execute(f"SELECT id FROM {SCHEMA}.partners WHERE user_id = %s", (user["id"],))
+            prow = cur.fetchone()
+            partner_id = prow[0] if prow else None
+        if not partner_id:
+            conn.close()
+            return err("Профиль партнёра не найден")
+        rate_id = body.get("id")
+        service_name = (body.get("service_name") or "").strip()
+        amount = float(body.get("amount") or 0)
+        note = (body.get("note") or "").strip() or None
+        if not service_name:
+            conn.close()
+            return err("Укажите название услуги")
+        if rate_id:
+            cur.execute(
+                f"UPDATE {SCHEMA}.partner_custom_rates SET service_name=%s, amount=%s, note=%s, updated_at=NOW() WHERE id=%s AND partner_id=%s",
+                (service_name, amount, note, rate_id, partner_id),
+            )
+        else:
+            cur.execute(
+                f"INSERT INTO {SCHEMA}.partner_custom_rates (partner_id, service_name, amount, note) VALUES (%s,%s,%s,%s) RETURNING id",
+                (partner_id, service_name, amount, note),
+            )
+            rate_id = cur.fetchone()[0]
+        conn.commit()
+        conn.close()
+        return ok({"ok": True, "id": rate_id})
+
+    # ── DELETE CUSTOM RATE (помечаем как удалённый через service_name) ──────────
+    if action == "delete_custom_rate":
+        conn = get_conn()
+        cur = conn.cursor()
+        if is_admin:
+            partner_id = body.get("partner_id")
+        else:
+            cur.execute(f"SELECT id FROM {SCHEMA}.partners WHERE user_id = %s", (user["id"],))
+            prow = cur.fetchone()
+            partner_id = prow[0] if prow else None
+        rate_id = body.get("id")
+        if not rate_id or not partner_id:
+            conn.close()
+            return err("Не указан id")
+        cur.execute(
+            f"UPDATE {SCHEMA}.partner_custom_rates SET service_name='__deleted__', updated_at=NOW() WHERE id=%s AND partner_id=%s",
+            (rate_id, partner_id),
+        )
+        conn.commit()
+        conn.close()
+        return ok({"ok": True})
+
     return err("Неизвестное действие", 400)
