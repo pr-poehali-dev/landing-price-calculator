@@ -1,0 +1,24 @@
+{
+  "name": "Legis24",
+  "short_name": "Legis24",
+  "description": "Юридические документы за 24 часа",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0d1826",
+  "theme_color": "#0d1826",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "https://cdn.poehali.dev/projects/ec09f91e-5c19-456f-a8f1-620fce7cd143/bucket/c8036234-f779-4aab-a337-5bdce4ce94e0.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "https://cdn.poehali.dev/projects/ec09f91e-5c19-456f-a8f1-620fce7cd143/bucket/c8036234-f779-4aab-a337-5bdce4ce94e0.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
