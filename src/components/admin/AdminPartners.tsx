@@ -95,35 +95,45 @@ export default function AdminPartners({ sessionId }: Props) {
   return (
     <div>
       {/* Stats row */}
-      <div className="grid md:grid-cols-3 gap-4 mb-8">
+      <div className="grid grid-cols-3 gap-3 mb-6">
         {[
           { icon: "Users", label: "Всего партнёров", value: total },
           { icon: "UserCheck", label: "Страница", value: `${page} / ${totalPages || 1}` },
-          { icon: "Handshake", label: "Роль", value: "Администратор" },
+          { icon: "Handshake", label: "Роль", value: "Админ" },
         ].map((card) => (
-          <div key={card.label} className="rounded-2xl p-6" style={{ background: "var(--bg-white)", border: "1px solid var(--border-c)" }}>
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: "var(--blue-dim)" }}>
-                <Icon name={card.icon as "Users"} size={18} style={{ color: "var(--blue)" }} />
+          <div key={card.label} className="rounded-2xl p-3 md:p-5" style={{ background: "var(--bg-white)", border: "1px solid var(--border-c)" }}>
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: "var(--blue-dim)" }}>
+                <Icon name={card.icon as "Users"} size={14} style={{ color: "var(--blue)" }} />
               </div>
-              <span className="text-sm font-semibold" style={{ color: "var(--navy)" }}>{card.label}</span>
+              <span className="text-xs font-semibold hidden sm:block" style={{ color: "var(--text-muted)" }}>{card.label}</span>
             </div>
-            <p className="text-2xl font-bold" style={{ color: "var(--navy)" }}>{card.value}</p>
+            <p className="text-lg md:text-2xl font-bold" style={{ color: "var(--navy)" }}>{card.value}</p>
+            <p className="text-xs sm:hidden mt-0.5" style={{ color: "var(--text-muted)" }}>{card.label}</p>
           </div>
         ))}
       </div>
 
       {/* Table */}
       <div className="rounded-2xl overflow-hidden" style={{ background: "var(--bg-white)", border: "1px solid var(--border-c)" }}>
-        <div className="px-6 py-4 flex flex-wrap items-center justify-between gap-3" style={{ borderBottom: "1px solid var(--border-c)" }}>
-          <h2 className="font-bold text-base" style={{ color: "var(--navy)" }}>Партнёры</h2>
+        <div className="px-4 md:px-6 py-3 md:py-4 space-y-3" style={{ borderBottom: "1px solid var(--border-c)" }}>
+          <div className="flex items-center justify-between gap-2">
+            <h2 className="font-bold text-base" style={{ color: "var(--navy)" }}>Партнёры</h2>
+            <button
+              onClick={() => load(page, q)}
+              className="flex items-center gap-1.5 text-xs transition-opacity hover:opacity-70"
+              style={{ color: "var(--blue)" }}>
+              <Icon name="RefreshCw" size={13} />
+              <span className="hidden sm:inline">Обновить</span>
+            </button>
+          </div>
           <div className="flex gap-2">
-            <div className="relative">
+            <div className="relative flex-1">
               <Icon name="Search" size={14} className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: "var(--text-muted)" }} />
               <input
-                className="pl-8 pr-4 py-2 rounded-lg text-sm outline-none"
-                style={{ background: "var(--bg)", border: "1px solid var(--border-c)", color: "var(--text)", width: 220 }}
-                placeholder="Поиск по логину, ИНН..."
+                className="w-full pl-8 pr-4 py-2 rounded-lg text-sm outline-none"
+                style={{ background: "var(--bg)", border: "1px solid var(--border-c)", color: "var(--text)" }}
+                placeholder="Логин, ИНН..."
                 value={qInput}
                 onChange={(e) => setQInput(e.target.value)}
                 onKeyDown={(e) => { if (e.key === "Enter") { setQ(qInput); setPage(1); } }}
@@ -131,16 +141,9 @@ export default function AdminPartners({ sessionId }: Props) {
             </div>
             <button
               onClick={() => { setQ(qInput); setPage(1); }}
-              className="px-4 py-2 rounded-lg text-xs font-semibold"
+              className="px-4 py-2 rounded-lg text-xs font-semibold flex-shrink-0"
               style={{ background: "var(--blue)", color: "#fff" }}>
               Найти
-            </button>
-            <button
-              onClick={() => load(page, q)}
-              className="flex items-center gap-1.5 text-xs transition-opacity hover:opacity-70"
-              style={{ color: "var(--blue)" }}>
-              <Icon name="RefreshCw" size={13} />
-              Обновить
             </button>
           </div>
         </div>

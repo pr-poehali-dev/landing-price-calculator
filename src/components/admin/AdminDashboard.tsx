@@ -71,14 +71,14 @@ interface CardProps {
 
 function StatCard({ icon, label, value, sub, color = "var(--blue)" }: CardProps) {
   return (
-    <div className="rounded-2xl p-5" style={{ background: "var(--bg-white)", border: "1px solid var(--border-c)" }}>
-      <div className="flex items-center gap-3 mb-4">
-        <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: `${color}18` }}>
-          <Icon name={icon as "Users"} size={18} style={{ color }} />
+    <div className="rounded-2xl p-3 md:p-5" style={{ background: "var(--bg-white)", border: "1px solid var(--border-c)" }}>
+      <div className="flex items-center gap-2 mb-2 md:mb-4">
+        <div className="w-7 h-7 md:w-9 md:h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: `${color}18` }}>
+          <Icon name={icon as "Users"} size={15} style={{ color }} />
         </div>
-        <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--text-muted)" }}>{label}</p>
+        <p className="text-xs font-semibold uppercase tracking-wide leading-tight" style={{ color: "var(--text-muted)" }}>{label}</p>
       </div>
-      <p className="text-2xl md:text-3xl font-bold mb-1" style={{ color: "var(--navy)" }}>{value}</p>
+      <p className="text-xl md:text-3xl font-bold mb-0.5" style={{ color: "var(--navy)" }}>{value}</p>
       {sub && <p className="text-xs" style={{ color: "var(--text-muted)" }}>{sub}</p>}
     </div>
   );
@@ -168,8 +168,8 @@ export default function AdminDashboard({ sessionId }: { sessionId: string }) {
       <section>
         <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: "var(--text-muted)" }}>Динамика за 30 дней</p>
         <div className="rounded-2xl p-5" style={{ background: "var(--bg-white)", border: "1px solid var(--border-c)" }}>
-          <ResponsiveContainer width="100%" height={220}>
-            <AreaChart data={combinedChart} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
+          <ResponsiveContainer width="100%" height={200}>
+            <AreaChart data={combinedChart} margin={{ top: 4, right: 4, left: -24, bottom: 0 }}>
               <defs>
                 <linearGradient id="gradBlue" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor={C_BLUE} stopOpacity={0.25} />
@@ -238,7 +238,7 @@ export default function AdminDashboard({ sessionId }: { sessionId: string }) {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
 
           {/* Контракты */}
-          <div className="rounded-2xl p-5 space-y-4" style={{ background: "var(--bg-white)", border: "1px solid var(--border-c)" }}>
+          <div className="rounded-2xl p-4 md:p-5 space-y-3 md:space-y-4" style={{ background: "var(--bg-white)", border: "1px solid var(--border-c)" }}>
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: "rgba(21,128,61,0.1)" }}>
                 <Icon name="FileSignature" size={16} style={{ color: "var(--success)" }} />
@@ -274,7 +274,7 @@ export default function AdminDashboard({ sessionId }: { sessionId: string }) {
           </div>
 
           {/* Вознаграждения */}
-          <div className="rounded-2xl p-5 space-y-4" style={{ background: "var(--bg-white)", border: "1px solid var(--border-c)" }}>
+          <div className="rounded-2xl p-4 md:p-5 space-y-3 md:space-y-4" style={{ background: "var(--bg-white)", border: "1px solid var(--border-c)" }}>
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: "rgba(124,58,237,0.1)" }}>
                 <Icon name="Wallet" size={16} style={{ color: "#7c3aed" }} />
@@ -315,7 +315,7 @@ export default function AdminDashboard({ sessionId }: { sessionId: string }) {
       <section>
         <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: "var(--text-muted)" }}>Заявки по неделям</p>
         <div className="rounded-2xl p-5" style={{ background: "var(--bg-white)", border: "1px solid var(--border-c)" }}>
-          <ResponsiveContainer width="100%" height={180}>
+          <ResponsiveContainer width="100%" height={160}>
             <BarChart
               data={[0, 1, 2, 3].map(weekIdx => {
                 const startI = weekIdx * 7;

@@ -65,20 +65,21 @@ function AdminPanel({ sessionId }: { sessionId: string }) {
   return (
     <div>
       {/* Stats */}
-      <div className="grid md:grid-cols-3 gap-4 mb-8">
+      <div className="grid grid-cols-3 gap-3 mb-6">
         {[
           { icon: "Inbox", label: "Всего заявок", value: total },
           { icon: "Clock", label: "Страница", value: `${page} / ${totalPages || 1}` },
-          { icon: "Users", label: "Роль", value: "Администратор" },
+          { icon: "Users", label: "Роль", value: "Админ" },
         ].map((card) => (
-          <div key={card.label} className="rounded-2xl p-6" style={{ background: "var(--bg-white)", border: "1px solid var(--border-c)" }}>
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: "var(--blue-dim)" }}>
-                <Icon name={card.icon as "Inbox"} size={18} style={{ color: "var(--blue)" }} />
+          <div key={card.label} className="rounded-2xl p-3 md:p-5" style={{ background: "var(--bg-white)", border: "1px solid var(--border-c)" }}>
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: "var(--blue-dim)" }}>
+                <Icon name={card.icon as "Inbox"} size={14} style={{ color: "var(--blue)" }} />
               </div>
-              <span className="text-sm font-semibold" style={{ color: "var(--navy)" }}>{card.label}</span>
+              <span className="text-xs font-semibold hidden sm:block" style={{ color: "var(--text-muted)" }}>{card.label}</span>
             </div>
-            <p className="text-2xl font-bold" style={{ color: "var(--navy)" }}>{card.value}</p>
+            <p className="text-lg md:text-2xl font-bold" style={{ color: "var(--navy)" }}>{card.value}</p>
+            <p className="text-xs sm:hidden mt-0.5" style={{ color: "var(--text-muted)" }}>{card.label}</p>
           </div>
         ))}
       </div>
@@ -146,12 +147,21 @@ function AdminPanel({ sessionId }: { sessionId: string }) {
             {/* Mobile */}
             <div className="md:hidden divide-y" style={{ borderColor: "var(--border-c)" }}>
               {submissions.map((s) => (
-                <div key={s.id} className="px-5 py-4 cursor-pointer" onClick={() => setEditId(s.id)} style={{ background: "transparent" }}>
-                  <div className="flex items-start justify-between mb-1">
-                    <p className="font-semibold text-sm" style={{ color: "var(--navy)" }}>{s.name || "—"}</p>
-                    <span className="text-xs" style={{ color: "var(--text-muted)" }}>{formatDate(s.created_at)}</span>
+                <div key={s.id} className="px-4 py-3.5 cursor-pointer active:opacity-70" onClick={() => setEditId(s.id)}>
+                  <div className="flex items-start justify-between gap-2 mb-1">
+                    <p className="font-semibold text-sm leading-tight" style={{ color: "var(--navy)" }}>{s.name || "—"}</p>
+                    <span className="text-xs flex-shrink-0" style={{ color: "var(--text-muted)" }}>{formatDate(s.created_at)}</span>
                   </div>
-                  <p className="text-xs" style={{ color: "var(--text-muted)" }}>{s.phone} · {s.email}</p>
+                  <p className="text-xs mb-1" style={{ color: "var(--text-muted)" }}>{s.phone}{s.email ? ` · ${s.email}` : ""}</p>
+                  {s.inn_company && <p className="text-xs font-medium" style={{ color: "var(--navy)" }}>{s.inn_company}</p>}
+                  <div className="flex items-center gap-2 mt-1.5">
+                    {s.files_count > 0 && (
+                      <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full" style={{ background: "var(--blue-dim)", color: "var(--blue)" }}>
+                        <Icon name="Paperclip" size={10} />{s.files_count}
+                      </span>
+                    )}
+                    <Icon name="ChevronRight" size={14} className="ml-auto" style={{ color: "var(--text-muted)" }} />
+                  </div>
                 </div>
               ))}
             </div>
