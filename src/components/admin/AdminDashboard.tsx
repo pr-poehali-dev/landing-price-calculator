@@ -1,7 +1,14 @@
 import { useState, useEffect } from "react";
 import Icon from "@/components/ui/icon";
+import {
+  AreaChart, Area, BarChart, Bar,
+  XAxis, YAxis, CartesianGrid, Tooltip,
+  ResponsiveContainer, Legend,
+} from "recharts";
 
 const ADMIN_URL = "https://functions.poehali.dev/2fb10b23-2471-4f73-a39f-315ed4c51e8c";
+
+interface ChartPoint { date: string; count: number }
 
 interface DashData {
   submissions_total: number;
@@ -16,6 +23,8 @@ interface DashData {
   rewards_paid: number;
   rewards_pending: number;
   payments_sum: number;
+  submissions_chart: ChartPoint[];
+  clients_chart: ChartPoint[];
 }
 
 function fmtMoney(v: number) {
@@ -23,6 +32,25 @@ function fmtMoney(v: number) {
   if (v >= 1_000_000) return `${(v / 1_000_000).toFixed(1)} млн ₽`;
   if (v >= 1_000) return `${(v / 1_000).toFixed(0)} тыс. ₽`;
   return `${v.toLocaleString("ru-RU")} ₽`;
+}
+
+function fmtDay(iso: string) {
+  const d = new Date(iso);
+  return d.toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit" });
+}
+
+// Заполняем пропущенные дни нулями за последние 30 дней
+function fillDays(chart: ChartPoint[]): { date: string; label: string; count: number }[] {
+  const map: Record<string, number> = {};
+  chart.forEach(p => { map[p.date] = p.count; });
+  const result = [];
+  for (let i = 29; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    const key = d.toISOString().slice(0, 10);
+    result.push({ date: key, label: fmtDay(key), count: map[key] || 0 });
+  }
+  return result;
 }
 
 interface CardProps {
@@ -80,6 +108,16 @@ export default function AdminDashboard({ sessionId }: { sessionId: string }) {
     ? Math.round((data.clients_done / data.clients_total) * 100)
     : 0;
 
+  const submissionsChart = fillDays(data.submissions_chart || []);
+  const clientsChart = fillDays(data.clients_chart || []);
+
+  // Объединяем два чарта по дате для одного графика
+  const combinedChart = submissionsChart.map((s, i) => ({
+    label: s.label,
+    "Заявки с сайта": s.count,
+    "Клиенты партнёров": clientsChart[i]?.count || 0,
+  }));
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -101,7 +139,7 @@ export default function AdminDashboard({ sessionId }: { sessionId: string }) {
       {/* Заявки */}
       <section>
         <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: "var(--text-muted)" }}>Заявки с сайта</p>
-        <div className="grid grid-cols-2 md:grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-3">
           <StatCard icon="Inbox" label="Всего заявок" value={data.submissions_total} color="var(--blue)" />
           <StatCard icon="TrendingUp" label="За 7 дней" value={data.submissions_7d} color="#7c3aed" />
         </div>
@@ -112,9 +150,77 @@ export default function AdminDashboard({ sessionId }: { sessionId: string }) {
         <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: "var(--text-muted)" }}>Партнёры и клиенты</p>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <StatCard icon="Handshake" label="Партнёров всего" value={data.partners_total} color="#d97706" />
-          <StatCard icon="CheckCircle2" label="Активных партнёров" value={data.partners_active} color="var(--success)" />
-          <StatCard icon="Users" label="Клиентов партнёров" value={data.clients_total} color="var(--blue)" />
+          <StatCard icon="CheckCircle2" label="Активных" value={data.partners_active} color="var(--success)" />
+          <StatCard icon="Users" label="Клиентов" value={data.clients_total} color="var(--blue)" />
           <StatCard icon="Percent" label="Конверсия" value={`${convRate}%`} sub={`${data.clients_done} завершено`} color="#7c3aed" />
+        </div>
+      </section>
+
+      {/* График динамики */}
+      <section>
+        <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: "var(--text-muted)" }}>Динамика за 30 дней</p>
+        <div className="rounded-2xl p-5" style={{ background: "var(--bg-white)", border: "1px solid var(--border-c)" }}>
+          <ResponsiveContainer width="100%" height={220}>
+            <AreaChart data={combinedChart} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
+              <defs>
+                <linearGradient id="gradBlue" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="var(--blue)" stopOpacity={0.25} />
+                  <stop offset="95%" stopColor="var(--blue)" stopOpacity={0} />
+                </linearGradient>
+                <linearGradient id="gradPurple" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#7c3aed" stopOpacity={0.2} />
+                  <stop offset="95%" stopColor="#7c3aed" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--border-c)" vertical={false} />
+              <XAxis
+                dataKey="label"
+                tick={{ fontSize: 10, fill: "var(--text-muted)" }}
+                tickLine={false}
+                axisLine={false}
+                interval={6}
+              />
+              <YAxis
+                allowDecimals={false}
+                tick={{ fontSize: 10, fill: "var(--text-muted)" }}
+                tickLine={false}
+                axisLine={false}
+              />
+              <Tooltip
+                contentStyle={{
+                  background: "var(--bg-white)",
+                  border: "1px solid var(--border-c)",
+                  borderRadius: 12,
+                  fontSize: 12,
+                  color: "var(--navy)",
+                }}
+                labelStyle={{ fontWeight: 600, marginBottom: 4 }}
+              />
+              <Legend
+                wrapperStyle={{ fontSize: 11, paddingTop: 12 }}
+                iconType="circle"
+                iconSize={8}
+              />
+              <Area
+                type="monotone"
+                dataKey="Заявки с сайта"
+                stroke="var(--blue)"
+                strokeWidth={2}
+                fill="url(#gradBlue)"
+                dot={false}
+                activeDot={{ r: 4 }}
+              />
+              <Area
+                type="monotone"
+                dataKey="Клиенты партнёров"
+                stroke="#7c3aed"
+                strokeWidth={2}
+                fill="url(#gradPurple)"
+                dot={false}
+                activeDot={{ r: 4 }}
+              />
+            </AreaChart>
+          </ResponsiveContainer>
         </div>
       </section>
 
@@ -194,6 +300,44 @@ export default function AdminDashboard({ sessionId }: { sessionId: string }) {
               )}
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* Столбчатый график по неделям */}
+      <section>
+        <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: "var(--text-muted)" }}>Заявки по неделям</p>
+        <div className="rounded-2xl p-5" style={{ background: "var(--bg-white)", border: "1px solid var(--border-c)" }}>
+          <ResponsiveContainer width="100%" height={180}>
+            <BarChart
+              data={[0, 1, 2, 3].map(weekIdx => {
+                const startI = weekIdx * 7;
+                const slice = combinedChart.slice(startI, startI + 7);
+                const label = slice[0]?.label || "";
+                return {
+                  label,
+                  "Заявки с сайта": slice.reduce((s, p) => s + p["Заявки с сайта"], 0),
+                  "Клиенты": slice.reduce((s, p) => s + p["Клиенты партнёров"], 0),
+                };
+              })}
+              margin={{ top: 4, right: 4, left: -20, bottom: 0 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--border-c)" vertical={false} />
+              <XAxis dataKey="label" tick={{ fontSize: 10, fill: "var(--text-muted)" }} tickLine={false} axisLine={false} />
+              <YAxis allowDecimals={false} tick={{ fontSize: 10, fill: "var(--text-muted)" }} tickLine={false} axisLine={false} />
+              <Tooltip
+                contentStyle={{
+                  background: "var(--bg-white)",
+                  border: "1px solid var(--border-c)",
+                  borderRadius: 12,
+                  fontSize: 12,
+                  color: "var(--navy)",
+                }}
+              />
+              <Legend wrapperStyle={{ fontSize: 11, paddingTop: 12 }} iconType="circle" iconSize={8} />
+              <Bar dataKey="Заявки с сайта" fill="var(--blue)" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="Клиенты" fill="#7c3aed" radius={[4, 4, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
         </div>
       </section>
     </div>

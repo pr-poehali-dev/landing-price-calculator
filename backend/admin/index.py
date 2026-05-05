@@ -117,6 +117,26 @@ def handler(event: dict, context) -> dict:
         cur.execute(f"SELECT COALESCE(SUM(amount), 0) FROM {SCHEMA}.partner_payments")
         payments_sum = float(cur.fetchone()[0])
 
+        # Динамика заявок за 30 дней
+        cur.execute(
+            f"""SELECT DATE(created_at AT TIME ZONE 'Europe/Moscow') AS day, COUNT(*)
+                FROM {SCHEMA}.form_submissions
+                WHERE created_at >= NOW() - INTERVAL '30 days'
+                GROUP BY day
+                ORDER BY day"""
+        )
+        submissions_chart = [{"date": str(r[0]), "count": r[1]} for r in cur.fetchall()]
+
+        # Динамика клиентов партнёров за 30 дней
+        cur.execute(
+            f"""SELECT DATE(created_at AT TIME ZONE 'Europe/Moscow') AS day, COUNT(*)
+                FROM {SCHEMA}.partner_clients
+                WHERE created_at >= NOW() - INTERVAL '30 days'
+                GROUP BY day
+                ORDER BY day"""
+        )
+        clients_chart = [{"date": str(r[0]), "count": r[1]} for r in cur.fetchall()]
+
         conn.close()
         return ok({
             "submissions_total": submissions_total,
@@ -131,6 +151,8 @@ def handler(event: dict, context) -> dict:
             "rewards_paid": rewards_paid,
             "rewards_pending": rewards_pending,
             "payments_sum": payments_sum,
+            "submissions_chart": submissions_chart,
+            "clients_chart": clients_chart,
         })
 
     # ── СПИСОК ЗАЯВОК ─────────────────────────────────────────────────────────
