@@ -52,11 +52,12 @@ interface DashData {
   clients_chart: ChartPoint[];
 }
 
-function fmtMoney(v: number) {
-  if (v >= 1_000_000_000) return `${(v / 1_000_000_000).toFixed(1)} млрд ₽`;
-  if (v >= 1_000_000) return `${(v / 1_000_000).toFixed(1)} млн ₽`;
-  if (v >= 1_000) return `${(v / 1_000).toFixed(0)} тыс. ₽`;
-  return `${v.toLocaleString("ru-RU")} ₽`;
+function fmtMoney(v: number | null | undefined) {
+  const n = Number(v) || 0;
+  if (n >= 1_000_000_000) return `${(n / 1_000_000_000).toFixed(1)} млрд ₽`;
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)} млн ₽`;
+  if (n >= 1_000) return `${(n / 1_000).toFixed(0)} тыс. ₽`;
+  return `${n.toLocaleString("ru-RU")} ₽`;
 }
 
 function fmtDay(iso: string) {
@@ -129,8 +130,16 @@ export default function AdminDashboard({ sessionId }: { sessionId: string }) {
 
   if (!data) return null;
 
-  const convRate = data.clients_total > 0
-    ? Math.round((data.clients_done / data.clients_total) * 100)
+  const clientsTotal = Number(data.clients_total) || 0;
+  const clientsDone = Number(data.clients_done) || 0;
+  const contractsSum = Number(data.contracts_sum) || 0;
+  const contractsPaidSum = Number(data.contracts_paid_sum) || 0;
+  const rewardsTotal = Number(data.rewards_total) || 0;
+  const rewardsPaid = Number(data.rewards_paid) || 0;
+  const rewardsPending = Number(data.rewards_pending) || 0;
+
+  const convRate = clientsTotal > 0
+    ? Math.round((clientsDone / clientsTotal) * 100)
     : 0;
 
   const submissionsChart = fillDays(data.submissions_chart || []);
@@ -165,8 +174,8 @@ export default function AdminDashboard({ sessionId }: { sessionId: string }) {
       <section>
         <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: "var(--text-muted)" }}>Заявки с сайта</p>
         <div className="grid grid-cols-2 gap-3">
-          <StatCard icon="Inbox" label="Всего заявок" value={data.submissions_total} color={C_BLUE} />
-          <StatCard icon="TrendingUp" label="За 7 дней" value={data.submissions_7d} color={C_PURPLE} />
+          <StatCard icon="Inbox" label="Всего заявок" value={Number(data.submissions_total) || 0} color={C_BLUE} />
+          <StatCard icon="TrendingUp" label="За 7 дней" value={Number(data.submissions_7d) || 0} color={C_PURPLE} />
         </div>
       </section>
 
@@ -174,10 +183,10 @@ export default function AdminDashboard({ sessionId }: { sessionId: string }) {
       <section>
         <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: "var(--text-muted)" }}>Партнёры и клиенты</p>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <StatCard icon="Handshake" label="Партнёров всего" value={data.partners_total} color={C_GOLD} />
-          <StatCard icon="CheckCircle2" label="Активных" value={data.partners_active} color={C_GREEN} />
-          <StatCard icon="Users" label="Клиентов" value={data.clients_total} color={C_BLUE} />
-          <StatCard icon="Percent" label="Конверсия" value={`${convRate}%`} sub={`${data.clients_done} завершено`} color={C_PURPLE} />
+          <StatCard icon="Handshake" label="Партнёров всего" value={Number(data.partners_total) || 0} color={C_GOLD} />
+          <StatCard icon="CheckCircle2" label="Активных" value={Number(data.partners_active) || 0} color={C_GREEN} />
+          <StatCard icon="Users" label="Клиентов" value={clientsTotal} color={C_BLUE} />
+          <StatCard icon="Percent" label="Конверсия" value={`${convRate}%`} sub={`${clientsDone} завершено`} color={C_PURPLE} />
         </div>
       </section>
 
@@ -267,25 +276,25 @@ export default function AdminDashboard({ sessionId }: { sessionId: string }) {
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-xs" style={{ color: "var(--text-muted)" }}>Всего по контрактам</span>
-                <span className="text-base font-bold" style={{ color: "var(--navy)" }}>{fmtMoney(data.contracts_sum)}</span>
+                <span className="text-base font-bold" style={{ color: "var(--navy)" }}>{fmtMoney(contractsSum)}</span>
               </div>
               <div className="h-px" style={{ background: "var(--border-c)" }} />
               <div className="flex items-center justify-between">
                 <span className="text-xs" style={{ color: "var(--text-muted)" }}>Оплачено клиентами</span>
-                <span className="text-base font-bold" style={{ color: "var(--success)" }}>{fmtMoney(data.contracts_paid_sum)}</span>
+                <span className="text-base font-bold" style={{ color: "var(--success)" }}>{fmtMoney(contractsPaidSum)}</span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-xs" style={{ color: "var(--text-muted)" }}>Ожидает оплаты</span>
-                <span className="text-base font-bold" style={{ color: "#d97706" }}>{fmtMoney(data.contracts_sum - data.contracts_paid_sum)}</span>
+                <span className="text-base font-bold" style={{ color: "#d97706" }}>{fmtMoney(contractsSum - contractsPaidSum)}</span>
               </div>
-              {data.contracts_sum > 0 && (
+              {contractsSum > 0 && (
                 <div>
                   <div className="flex justify-between text-xs mb-1" style={{ color: "var(--text-muted)" }}>
                     <span>Собрано</span>
-                    <span>{Math.round((data.contracts_paid_sum / data.contracts_sum) * 100)}%</span>
+                    <span>{Math.round((contractsPaidSum / contractsSum) * 100)}%</span>
                   </div>
                   <div className="h-2 rounded-full overflow-hidden" style={{ background: "var(--bg)" }}>
-                    <div className="h-full rounded-full transition-all" style={{ width: `${Math.min(100, (data.contracts_paid_sum / data.contracts_sum) * 100)}%`, background: "var(--success)" }} />
+                    <div className="h-full rounded-full transition-all" style={{ width: `${Math.min(100, (contractsPaidSum / contractsSum) * 100)}%`, background: "var(--success)" }} />
                   </div>
                 </div>
               )}
@@ -303,25 +312,25 @@ export default function AdminDashboard({ sessionId }: { sessionId: string }) {
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-xs" style={{ color: "var(--text-muted)" }}>Начислено всего</span>
-                <span className="text-base font-bold" style={{ color: "var(--navy)" }}>{fmtMoney(data.rewards_total)}</span>
+                <span className="text-base font-bold" style={{ color: "var(--navy)" }}>{fmtMoney(rewardsTotal)}</span>
               </div>
               <div className="h-px" style={{ background: "var(--border-c)" }} />
               <div className="flex items-center justify-between">
                 <span className="text-xs" style={{ color: "var(--text-muted)" }}>Уже выплачено</span>
-                <span className="text-base font-bold" style={{ color: "var(--success)" }}>{fmtMoney(data.rewards_paid)}</span>
+                <span className="text-base font-bold" style={{ color: "var(--success)" }}>{fmtMoney(rewardsPaid)}</span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-xs" style={{ color: "var(--text-muted)" }}>К выплате</span>
-                <span className="text-base font-bold" style={{ color: "#ef4444" }}>{fmtMoney(data.rewards_pending)}</span>
+                <span className="text-base font-bold" style={{ color: "#ef4444" }}>{fmtMoney(rewardsPending)}</span>
               </div>
-              {data.rewards_total > 0 && (
+              {rewardsTotal > 0 && (
                 <div>
                   <div className="flex justify-between text-xs mb-1" style={{ color: "var(--text-muted)" }}>
                     <span>Выплачено</span>
-                    <span>{Math.round((data.rewards_paid / data.rewards_total) * 100)}%</span>
+                    <span>{Math.round((rewardsPaid / rewardsTotal) * 100)}%</span>
                   </div>
                   <div className="h-2 rounded-full overflow-hidden" style={{ background: "var(--bg)" }}>
-                    <div className="h-full rounded-full transition-all" style={{ width: `${Math.min(100, (data.rewards_paid / data.rewards_total) * 100)}%`, background: "#7c3aed" }} />
+                    <div className="h-full rounded-full transition-all" style={{ width: `${Math.min(100, (rewardsPaid / rewardsTotal) * 100)}%`, background: "#7c3aed" }} />
                   </div>
                 </div>
               )}
