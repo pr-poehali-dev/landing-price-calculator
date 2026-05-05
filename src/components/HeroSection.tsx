@@ -27,13 +27,13 @@ export default function HeroSection({ onScrollTo, onOpenModal }: HeroSectionProp
   return (
     <>
       {/* ── NAV ─────────────────────────────────────────────────────────── */}
-      <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 md:px-12 py-2"
-        style={{ background: "#0d1826", borderBottom: "1px solid rgba(212,175,55,0.1)" }}>
+      <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 md:px-12"
+        style={{ background: "#0d1826", borderBottom: "1px solid rgba(212,175,55,0.1)", height: 70 }}>
 
         {/* Logo */}
         <div className="flex items-center">
           <img src="https://cdn.poehali.dev/projects/ec09f91e-5c19-456f-a8f1-620fce7cd143/bucket/2dd31743-a0a9-4408-8122-638fc7c5235a.jpeg"
-            alt="Legis24" style={{ height: 78, width: "auto" }} />
+            alt="Legis24" style={{ height: 54, width: "auto" }} />
         </div>
 
         {/* Desktop nav */}
@@ -79,7 +79,7 @@ export default function HeroSection({ onScrollTo, onOpenModal }: HeroSectionProp
 
       {/* Mobile menu */}
       {mobileMenuOpen && (
-        <div className="fixed top-[94px] left-0 right-0 z-40 px-6 py-6 space-y-1"
+        <div className="fixed top-[70px] left-0 right-0 z-40 px-6 py-6 space-y-1"
           style={{ background: "#080f1e", borderBottom: "1px solid rgba(212,175,55,0.15)" }}>
           {NAV_LINKS.map(([id, label]) => (
             <button key={id} onClick={() => scrollTo(id)}
@@ -133,7 +133,7 @@ export default function HeroSection({ onScrollTo, onOpenModal }: HeroSectionProp
             style={{ left: `${pct}%`, background: "linear-gradient(to bottom, transparent 5%, rgba(212,175,55,0.06) 50%, transparent 95%)" }} />
         ))}
 
-        <div className="relative max-w-6xl mx-auto px-6 md:px-12 pt-24 pb-24 lg:py-36 w-full">
+        <div className="relative max-w-6xl mx-auto px-6 md:px-12 pt-20 pb-24 lg:py-36 w-full">
 
           {/* Badge */}
           <div className="animate-fade-up inline-flex items-center gap-2 mb-8">
