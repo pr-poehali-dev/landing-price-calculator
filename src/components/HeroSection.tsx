@@ -27,7 +27,7 @@ export default function HeroSection({ onScrollTo, onOpenModal }: HeroSectionProp
   return (
     <>
       {/* ── NAV ─────────────────────────────────────────────────────────── */}
-      <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 md:px-12 py-4"
+      <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 md:px-12 py-2"
         style={{ background: "#0d1826", borderBottom: "1px solid rgba(212,175,55,0.1)" }}>
 
         {/* Logo */}
