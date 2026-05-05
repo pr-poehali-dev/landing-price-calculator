@@ -6,6 +6,14 @@ import {
   ResponsiveContainer, Legend,
 } from "recharts";
 
+const C_BLUE = "#2563eb";
+const C_PURPLE = "#7c3aed";
+const C_GREEN = "#15803d";
+const C_GOLD = "#d97706";
+const C_BORDER = "rgba(221,217,210,0.9)";
+const C_MUTED = "#6b7280";
+const C_NAVY = "#0f2c5a";
+
 const ADMIN_URL = "https://functions.poehali.dev/2fb10b23-2471-4f73-a39f-315ed4c51e8c";
 
 interface ChartPoint { date: string; count: number }
@@ -140,8 +148,8 @@ export default function AdminDashboard({ sessionId }: { sessionId: string }) {
       <section>
         <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: "var(--text-muted)" }}>Заявки с сайта</p>
         <div className="grid grid-cols-2 gap-3">
-          <StatCard icon="Inbox" label="Всего заявок" value={data.submissions_total} color="var(--blue)" />
-          <StatCard icon="TrendingUp" label="За 7 дней" value={data.submissions_7d} color="#7c3aed" />
+          <StatCard icon="Inbox" label="Всего заявок" value={data.submissions_total} color={C_BLUE} />
+          <StatCard icon="TrendingUp" label="За 7 дней" value={data.submissions_7d} color={C_PURPLE} />
         </div>
       </section>
 
@@ -149,10 +157,10 @@ export default function AdminDashboard({ sessionId }: { sessionId: string }) {
       <section>
         <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: "var(--text-muted)" }}>Партнёры и клиенты</p>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <StatCard icon="Handshake" label="Партнёров всего" value={data.partners_total} color="#d97706" />
-          <StatCard icon="CheckCircle2" label="Активных" value={data.partners_active} color="var(--success)" />
-          <StatCard icon="Users" label="Клиентов" value={data.clients_total} color="var(--blue)" />
-          <StatCard icon="Percent" label="Конверсия" value={`${convRate}%`} sub={`${data.clients_done} завершено`} color="#7c3aed" />
+          <StatCard icon="Handshake" label="Партнёров всего" value={data.partners_total} color={C_GOLD} />
+          <StatCard icon="CheckCircle2" label="Активных" value={data.partners_active} color={C_GREEN} />
+          <StatCard icon="Users" label="Клиентов" value={data.clients_total} color={C_BLUE} />
+          <StatCard icon="Percent" label="Конверсия" value={`${convRate}%`} sub={`${data.clients_done} завершено`} color={C_PURPLE} />
         </div>
       </section>
 
@@ -164,35 +172,35 @@ export default function AdminDashboard({ sessionId }: { sessionId: string }) {
             <AreaChart data={combinedChart} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
               <defs>
                 <linearGradient id="gradBlue" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="var(--blue)" stopOpacity={0.25} />
-                  <stop offset="95%" stopColor="var(--blue)" stopOpacity={0} />
+                  <stop offset="5%" stopColor={C_BLUE} stopOpacity={0.25} />
+                  <stop offset="95%" stopColor={C_BLUE} stopOpacity={0} />
                 </linearGradient>
                 <linearGradient id="gradPurple" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#7c3aed" stopOpacity={0.2} />
-                  <stop offset="95%" stopColor="#7c3aed" stopOpacity={0} />
+                  <stop offset="5%" stopColor={C_PURPLE} stopOpacity={0.2} />
+                  <stop offset="95%" stopColor={C_PURPLE} stopOpacity={0} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="var(--border-c)" vertical={false} />
+              <CartesianGrid strokeDasharray="3 3" stroke={C_BORDER} vertical={false} />
               <XAxis
                 dataKey="label"
-                tick={{ fontSize: 10, fill: "var(--text-muted)" }}
+                tick={{ fontSize: 10, fill: C_MUTED }}
                 tickLine={false}
                 axisLine={false}
                 interval={6}
               />
               <YAxis
                 allowDecimals={false}
-                tick={{ fontSize: 10, fill: "var(--text-muted)" }}
+                tick={{ fontSize: 10, fill: C_MUTED }}
                 tickLine={false}
                 axisLine={false}
               />
               <Tooltip
                 contentStyle={{
-                  background: "var(--bg-white)",
-                  border: "1px solid var(--border-c)",
+                  background: "#ffffff",
+                  border: `1px solid ${C_BORDER}`,
                   borderRadius: 12,
                   fontSize: 12,
-                  color: "var(--navy)",
+                  color: C_NAVY,
                 }}
                 labelStyle={{ fontWeight: 600, marginBottom: 4 }}
               />
@@ -204,7 +212,7 @@ export default function AdminDashboard({ sessionId }: { sessionId: string }) {
               <Area
                 type="monotone"
                 dataKey="Заявки с сайта"
-                stroke="var(--blue)"
+                stroke={C_BLUE}
                 strokeWidth={2}
                 fill="url(#gradBlue)"
                 dot={false}
@@ -213,7 +221,7 @@ export default function AdminDashboard({ sessionId }: { sessionId: string }) {
               <Area
                 type="monotone"
                 dataKey="Клиенты партнёров"
-                stroke="#7c3aed"
+                stroke={C_PURPLE}
                 strokeWidth={2}
                 fill="url(#gradPurple)"
                 dot={false}
@@ -321,21 +329,21 @@ export default function AdminDashboard({ sessionId }: { sessionId: string }) {
               })}
               margin={{ top: 4, right: 4, left: -20, bottom: 0 }}
             >
-              <CartesianGrid strokeDasharray="3 3" stroke="var(--border-c)" vertical={false} />
-              <XAxis dataKey="label" tick={{ fontSize: 10, fill: "var(--text-muted)" }} tickLine={false} axisLine={false} />
-              <YAxis allowDecimals={false} tick={{ fontSize: 10, fill: "var(--text-muted)" }} tickLine={false} axisLine={false} />
+              <CartesianGrid strokeDasharray="3 3" stroke={C_BORDER} vertical={false} />
+              <XAxis dataKey="label" tick={{ fontSize: 10, fill: C_MUTED }} tickLine={false} axisLine={false} />
+              <YAxis allowDecimals={false} tick={{ fontSize: 10, fill: C_MUTED }} tickLine={false} axisLine={false} />
               <Tooltip
                 contentStyle={{
-                  background: "var(--bg-white)",
-                  border: "1px solid var(--border-c)",
+                  background: "#ffffff",
+                  border: `1px solid ${C_BORDER}`,
                   borderRadius: 12,
                   fontSize: 12,
-                  color: "var(--navy)",
+                  color: C_NAVY,
                 }}
               />
               <Legend wrapperStyle={{ fontSize: 11, paddingTop: 12 }} iconType="circle" iconSize={8} />
-              <Bar dataKey="Заявки с сайта" fill="var(--blue)" radius={[4, 4, 0, 0]} />
-              <Bar dataKey="Клиенты" fill="#7c3aed" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="Заявки с сайта" fill={C_BLUE} radius={[4, 4, 0, 0]} />
+              <Bar dataKey="Клиенты" fill={C_PURPLE} radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
