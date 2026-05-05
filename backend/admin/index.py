@@ -119,7 +119,7 @@ def handler(event: dict, context) -> dict:
 
         # Динамика заявок за 30 дней
         cur.execute(
-            f"""SELECT DATE(created_at AT TIME ZONE 'Europe/Moscow') AS day, COUNT(*)
+            f"""SELECT DATE(created_at) AS day, COUNT(*)
                 FROM {SCHEMA}.form_submissions
                 WHERE created_at >= NOW() - INTERVAL '30 days'
                 GROUP BY day
@@ -129,7 +129,7 @@ def handler(event: dict, context) -> dict:
 
         # Динамика клиентов партнёров за 30 дней
         cur.execute(
-            f"""SELECT DATE(created_at AT TIME ZONE 'Europe/Moscow') AS day, COUNT(*)
+            f"""SELECT DATE(created_at) AS day, COUNT(*)
                 FROM {SCHEMA}.partner_clients
                 WHERE created_at >= NOW() - INTERVAL '30 days'
                 GROUP BY day
