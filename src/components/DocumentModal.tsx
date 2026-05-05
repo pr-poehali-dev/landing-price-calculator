@@ -106,7 +106,8 @@ export default function DocumentModal({ open, onClose }: DocumentModalProps) {
     setLoading(true);
     setProgress(0);
     try {
-      const body = JSON.stringify({ name, phone, email, inn, innInfo, message, files });
+      const ref_code = localStorage.getItem("ref_code") || undefined;
+      const body = JSON.stringify({ name, phone, email, inn, innInfo, message, files, ref_code });
       await new Promise<void>((resolve, reject) => {
         const xhr = new XMLHttpRequest();
         xhr.open("POST", API_URL);

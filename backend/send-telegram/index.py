@@ -49,6 +49,24 @@ def handler(event: dict, context) -> dict:
     inn_company = inn_info.get('name', '') if inn_info else ''
     message = body.get('message', '').strip()
     files = body.get('files', [])
+    ref_code = (body.get('ref_code') or '').strip().upper() or None
+
+    # Ищем партнёра по ref_code
+    partner_id = None
+    if ref_code:
+        try:
+            conn_ref = get_conn()
+            cur_ref = conn_ref.cursor()
+            cur_ref.execute(
+                f"SELECT id FROM {SCHEMA}.partners WHERE ref_code = %s",
+                (ref_code,),
+            )
+            row_ref = cur_ref.fetchone()
+            if row_ref:
+                partner_id = row_ref[0]
+            conn_ref.close()
+        except Exception as e:
+            print("Ref lookup error:", e)
 
     # Сохраняем заявку в БД и получаем id
     submission_id = None
@@ -57,9 +75,9 @@ def handler(event: dict, context) -> dict:
         cur = conn.cursor()
         cur.execute(
             f"""INSERT INTO {SCHEMA}.form_submissions
-                (name, phone, email, inn, inn_company, message, files_count)
-                VALUES (%s, %s, %s, %s, %s, %s, %s) RETURNING id""",
-            (name, phone, email, inn or None, inn_company or None, message or None, len(files)),
+                (name, phone, email, inn, inn_company, message, files_count, ref_code, partner_id)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s) RETURNING id""",
+            (name, phone, email, inn or None, inn_company or None, message or None, len(files), ref_code, partner_id),
         )
         submission_id = cur.fetchone()[0]
         conn.commit()

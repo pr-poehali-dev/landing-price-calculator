@@ -207,6 +207,66 @@ def handler(event: dict, context) -> dict:
         conn.close()
         return ok({"ref_code": ref_code})
 
+    # ── GET REF STATS ─────────────────────────────────────────────────────────
+    if action == "get_ref_stats":
+        conn = get_conn()
+        cur = conn.cursor()
+
+        if is_admin:
+            partner_id = body.get("partner_id")
+            if not partner_id:
+                conn.close()
+                return err("partner_id required")
+            cur.execute(f"SELECT ref_code FROM {SCHEMA}.partners WHERE id = %s", (partner_id,))
+        else:
+            cur.execute(f"SELECT id, ref_code FROM {SCHEMA}.partners WHERE user_id = %s", (user["id"],))
+            prow = cur.fetchone()
+            if not prow:
+                conn.close()
+                return ok({"clicks_total": 0, "clicks_7d": 0, "submissions_total": 0, "submissions_7d": 0})
+            partner_id, ref_code_val = prow[0], prow[1]
+
+        if is_admin:
+            rcrow = cur.fetchone()
+            ref_code_val = rcrow[0] if rcrow else None
+
+        if not ref_code_val:
+            conn.close()
+            return ok({"clicks_total": 0, "clicks_7d": 0, "submissions_total": 0, "submissions_7d": 0})
+
+        cur.execute(
+            f"SELECT COUNT(*) FROM {SCHEMA}.ref_clicks WHERE ref_code = %s",
+            (ref_code_val,),
+        )
+        clicks_total = cur.fetchone()[0]
+
+        cur.execute(
+            f"SELECT COUNT(*) FROM {SCHEMA}.ref_clicks WHERE ref_code = %s AND created_at >= NOW() - INTERVAL '7 days'",
+            (ref_code_val,),
+        )
+        clicks_7d = cur.fetchone()[0]
+
+        cur.execute(
+            f"SELECT COUNT(*) FROM {SCHEMA}.form_submissions WHERE ref_code = %s",
+            (ref_code_val,),
+        )
+        submissions_total = cur.fetchone()[0]
+
+        cur.execute(
+            f"SELECT COUNT(*) FROM {SCHEMA}.form_submissions WHERE ref_code = %s AND created_at >= NOW() - INTERVAL '7 days'",
+            (ref_code_val,),
+        )
+        submissions_7d = cur.fetchone()[0]
+
+        conn.close()
+        return ok({
+            "clicks_total": clicks_total,
+            "clicks_7d": clicks_7d,
+            "submissions_total": submissions_total,
+            "submissions_7d": submissions_7d,
+            "ref_code": ref_code_val,
+        })
+
     # ── GET CLIENTS ───────────────────────────────────────────────────────────
     if action == "get_clients":
         conn = get_conn()

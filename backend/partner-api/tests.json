@@ -23,6 +23,15 @@
       "expectedStatus": 401,
       "expectedBody": {"error": "Не авторизован"},
       "bodyMatcher": "partial"
+    },
+    {
+      "name": "Unauthorized get_ref_stats",
+      "method": "POST",
+      "path": "/",
+      "body": {"action": "get_ref_stats"},
+      "expectedStatus": 401,
+      "expectedBody": {"error": "Не авторизован"},
+      "bodyMatcher": "partial"
     }
   ]
 }

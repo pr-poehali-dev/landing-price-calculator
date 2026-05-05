@@ -3,12 +3,20 @@ import { QRCodeSVG } from "qrcode.react";
 import Icon from "@/components/ui/icon";
 import { apiPartner } from "./types";
 
+interface RefStats {
+  clicks_total: number;
+  clicks_7d: number;
+  submissions_total: number;
+  submissions_7d: number;
+}
+
 interface Props {
   sessionId: string;
 }
 
 export default function PartnerReferral({ sessionId }: Props) {
   const [refCode, setRefCode] = useState<string | null>(null);
+  const [stats, setStats] = useState<RefStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
   const qrRef = useRef<HTMLDivElement>(null);
@@ -16,13 +24,16 @@ export default function PartnerReferral({ sessionId }: Props) {
   const refUrl = refCode ? `${window.location.origin}/?ref=${refCode}` : null;
 
   useEffect(() => {
-    apiPartner(sessionId, { action: "get_profile" }).then(data => {
-      if (data.partner?.ref_code) {
-        setRefCode(data.partner.ref_code);
-      } else if (data.partner?.id) {
-        apiPartner(sessionId, { action: "get_ref_link" }).then(d => {
-          if (d.ref_code) setRefCode(d.ref_code);
-        });
+    apiPartner(sessionId, { action: "get_profile" }).then(async data => {
+      let code = data.partner?.ref_code;
+      if (!code && data.partner?.id) {
+        const d = await apiPartner(sessionId, { action: "get_ref_link" });
+        if (d.ref_code) code = d.ref_code;
+      }
+      if (code) {
+        setRefCode(code);
+        const s = await apiPartner(sessionId, { action: "get_ref_stats" });
+        if (s.clicks_total !== undefined) setStats(s);
       }
       setLoading(false);
     });
@@ -72,12 +83,36 @@ export default function PartnerReferral({ sessionId }: Props) {
     </div>
   );
 
+  const convRate = stats && stats.clicks_total > 0
+    ? Math.round((stats.submissions_total / stats.clicks_total) * 100)
+    : 0;
+
   return (
     <div className="space-y-6 max-w-xl mx-auto">
       <div>
         <p className="text-xs font-bold uppercase tracking-wide mb-1" style={{ color: "var(--text-muted)" }}>Ваш реферальный код</p>
         <p className="text-2xl font-bold tracking-widest" style={{ color: "var(--navy)", fontFamily: "monospace" }}>{refCode}</p>
       </div>
+
+      {/* Stats */}
+      {stats && (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          {[
+            { icon: "MousePointerClick", label: "Переходов всего", value: stats.clicks_total, color: "var(--blue)" },
+            { icon: "TrendingUp", label: "За 7 дней", value: stats.clicks_7d, color: "#7c3aed" },
+            { icon: "FileText", label: "Заявок всего", value: stats.submissions_total, color: "var(--success)" },
+            { icon: "Percent", label: "Конверсия", value: `${convRate}%`, color: "#d97706" },
+          ].map(c => (
+            <div key={c.label} className="rounded-2xl p-4" style={{ background: "var(--bg)", border: "1px solid var(--border-c)" }}>
+              <div className="w-8 h-8 rounded-lg flex items-center justify-center mb-2" style={{ background: `${c.color}18` }}>
+                <Icon name={c.icon as "MousePointerClick"} size={15} style={{ color: c.color }} />
+              </div>
+              <p className="text-xl font-bold mb-0.5" style={{ color: "var(--navy)" }}>{c.value}</p>
+              <p className="text-xs" style={{ color: "var(--text-muted)" }}>{c.label}</p>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Link block */}
       <div className="rounded-2xl p-5 space-y-3" style={{ background: "var(--bg)", border: "1px solid var(--border-c)" }}>
@@ -89,10 +124,7 @@ export default function PartnerReferral({ sessionId }: Props) {
           </div>
           <button onClick={copyLink}
             className="flex items-center gap-2 px-4 py-3 rounded-xl font-semibold text-sm flex-shrink-0 transition-all"
-            style={{
-              background: copied ? "var(--success)" : "var(--navy)",
-              color: "#fff",
-            }}>
+            style={{ background: copied ? "var(--success)" : "var(--navy)", color: "#fff" }}>
             <Icon name={copied ? "Check" : "Copy"} size={15} />
             {copied ? "Скопировано" : "Копировать"}
           </button>
