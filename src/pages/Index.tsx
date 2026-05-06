@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import HeroSection from "@/components/HeroSection";
 import PriceSection from "@/components/PriceSection";
+import LawSection from "@/components/LawSection";
 import FaqSection from "@/components/FaqSection";
 import DocumentModal from "@/components/DocumentModal";
 
@@ -30,6 +31,7 @@ const Index = () => {
     <div style={{ minHeight: "100vh" }}>
       <HeroSection onScrollTo={scrollTo} onOpenModal={() => setModalOpen(true)} />
       <PriceSection onScrollTo={scrollTo} onOpenModal={() => setModalOpen(true)} />
+      <LawSection onScrollTo={scrollTo} onOpenModal={() => setModalOpen(true)} />
       <FaqSection onOpenModal={() => setModalOpen(true)} />
       <DocumentModal open={modalOpen} onClose={() => setModalOpen(false)} />
     </div>
