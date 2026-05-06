@@ -24,6 +24,7 @@ interface Props {
   sessionId: string;
   partnerId: number;
   isAdmin: boolean;
+  lawyerType?: string | null;
 }
 
 function fmtMoney(v: number | null) {
@@ -35,7 +36,7 @@ function fmtMoney(v: number | null) {
 
 const EMPTY_CUSTOM = { service_name: "", amount: "", note: "" };
 
-export default function PartnerRates({ sessionId, partnerId, isAdmin }: Props) {
+export default function PartnerRates({ sessionId, partnerId, isAdmin, lawyerType }: Props) {
   const [services, setServices] = useState<Service[]>([]);
   const [customRates, setCustomRates] = useState<CustomRate[]>([]);
   const [loading, setLoading] = useState(true);
@@ -127,7 +128,9 @@ export default function PartnerRates({ sessionId, partnerId, isAdmin }: Props) {
     </div>
   );
 
-  const categories = [...new Set(services.map(s => s.category))];
+  const hasLawyerAccess = isAdmin || lawyerType === "lawyer" || lawyerType === "advocate";
+  const visibleServices = services.filter(s => s.category !== "Для юристов" || hasLawyerAccess);
+  const categories = [...new Set(visibleServices.map(s => s.category))];
 
   return (
     <div className="space-y-8">
@@ -146,8 +149,29 @@ export default function PartnerRates({ sessionId, partnerId, isAdmin }: Props) {
           </p>
         )}
 
+        {!isAdmin && !hasLawyerAccess && (
+          <div className="flex items-start gap-3 px-4 py-3 rounded-xl" style={{ background: "rgba(217,119,6,0.06)", border: "1px solid rgba(217,119,6,0.2)" }}>
+            <Icon name="Clock" size={16} style={{ color: "#d97706", flexShrink: 0, marginTop: 1 }} />
+            <div>
+              <p className="text-xs font-semibold mb-0.5" style={{ color: "#d97706" }}>Тарифы для юристов и адвокатов</p>
+              <p className="text-xs" style={{ color: "var(--text-muted)" }}>
+                Доступ к дополнительным тарифам открывается после подтверждения вашего статуса юриста или адвоката администратором.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {!isAdmin && hasLawyerAccess && (
+          <div className="flex items-center gap-2 px-3 py-2 rounded-lg" style={{ background: "rgba(124,58,237,0.06)", border: "1px solid rgba(124,58,237,0.15)" }}>
+            <Icon name="BadgeCheck" size={14} style={{ color: "#7c3aed" }} />
+            <p className="text-xs font-medium" style={{ color: "#7c3aed" }}>
+              {lawyerType === "advocate" ? "Адвокат" : "Юрист"} — доступ к расширенным тарифам открыт
+            </p>
+          </div>
+        )}
+
         {categories.map(cat => {
-          const catServices = services.filter(s => s.category === cat);
+          const catServices = visibleServices.filter(s => s.category === cat);
           return (
             <div key={cat}>
               <p className="text-xs font-semibold mb-2 uppercase tracking-wide" style={{ color: "var(--text-muted)" }}>{cat}</p>

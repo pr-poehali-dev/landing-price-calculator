@@ -122,6 +122,18 @@ def handler(event: dict, context) -> dict:
             (login, hash_password(password), role),
         )
         user_id = cur.fetchone()[0]
+
+        # Если партнёр указал, что является юристом или адвокатом — создаём запись и фиксируем запрос
+        if role == "partner":
+            lawyer_type_requested = body.get("lawyer_type_requested")
+            if lawyer_type_requested not in ("lawyer", "advocate"):
+                lawyer_type_requested = None
+            ref_code = (login[:4].upper() + secrets.token_hex(3).upper())[:10]
+            cur.execute(
+                f"INSERT INTO {SCHEMA}.partners (user_id, ref_code, lawyer_type_requested) VALUES (%s, %s, %s)",
+                (user_id, ref_code, lawyer_type_requested),
+            )
+
         sid = make_session_id()
         expires = datetime.utcnow() + timedelta(days=30)
         cur.execute(

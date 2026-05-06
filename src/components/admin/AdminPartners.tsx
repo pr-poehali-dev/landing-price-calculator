@@ -19,7 +19,14 @@ interface Partner {
   contact_email: string | null;
   clients_count: number;
   total_reward: number;
+  lawyer_type: string | null;
+  lawyer_type_requested: string | null;
 }
+
+const LAWYER_TYPE_LABELS: Record<string, { text: string; color: string; bg: string }> = {
+  lawyer:   { text: "Юрист",    color: "#7c3aed", bg: "rgba(124,58,237,0.08)" },
+  advocate: { text: "Адвокат",  color: "#0369a1", bg: "rgba(3,105,161,0.08)" },
+};
 
 const STATUS_LABELS: Record<string, { text: string; color: string; bg: string }> = {
   active:   { text: "Активен",    color: "#16a34a", bg: "rgba(22,163,74,0.08)" },
@@ -48,6 +55,7 @@ export default function AdminPartners({ sessionId }: Props) {
   const [selectedLogin, setSelectedLogin] = useState<string | null>(null);
   const [selectedPartnerId, setSelectedPartnerId] = useState<number | null>(null);
   const [statusChanging, setStatusChanging] = useState<number | null>(null);
+  const [lawyerChanging, setLawyerChanging] = useState<number | null>(null);
 
   const load = useCallback(async (p: number, search: string) => {
     setLoading(true);
@@ -75,6 +83,17 @@ export default function AdminPartners({ sessionId }: Props) {
     });
     setPartners(prev => prev.map(p => p.partner_id === partnerId ? { ...p, status: newStatus } : p));
     setStatusChanging(null);
+  };
+
+  const changeLawyerType = async (partnerId: number, lawyerType: string | null) => {
+    setLawyerChanging(partnerId);
+    await fetch(PARTNER_API, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-Session-Id": sessionId },
+      body: JSON.stringify({ action: "set_lawyer_type", partner_id: partnerId, lawyer_type: lawyerType }),
+    });
+    setPartners(prev => prev.map(p => p.partner_id === partnerId ? { ...p, lawyer_type: lawyerType } : p));
+    setLawyerChanging(null);
   };
 
   if (selectedLogin) {
@@ -164,7 +183,7 @@ export default function AdminPartners({ sessionId }: Props) {
               <table className="w-full text-sm">
                 <thead>
                   <tr style={{ borderBottom: "1px solid var(--border-c)" }}>
-                    {["Логин", "Организация", "ИНН", "Контакт", "Клиентов", "Вознаграждение", "Статус", ""].map((h) => (
+                    {["Логин", "Организация", "ИНН", "Контакт", "Клиентов", "Вознаграждение", "Статус", "Тип юриста", ""].map((h) => (
                       <th key={h} className="px-5 py-3 text-left text-xs font-semibold" style={{ color: "var(--text-muted)" }}>{h}</th>
                     ))}
                   </tr>
@@ -220,6 +239,41 @@ export default function AdminPartners({ sessionId }: Props) {
                           )}
                         </td>
                         <td className="px-5 py-3">
+                          {p.partner_id ? (
+                            lawyerChanging === p.partner_id ? (
+                              <Icon name="LoaderCircle" size={14} className="animate-spin" style={{ color: "var(--blue)" }} />
+                            ) : (
+                              <div className="flex flex-col gap-1">
+                                {p.lawyer_type_requested && !p.lawyer_type && (
+                                  <div className="text-xs px-2 py-0.5 rounded-full inline-flex items-center gap-1" style={{ background: "rgba(217,119,6,0.08)", color: "#d97706" }}>
+                                    <Icon name="Clock" size={10} />
+                                    Запрос: {p.lawyer_type_requested === "lawyer" ? "Юрист" : "Адвокат"}
+                                  </div>
+                                )}
+                                <select
+                                  value={p.lawyer_type || ""}
+                                  onChange={(e) => changeLawyerType(p.partner_id!, e.target.value || null)}
+                                  className="text-xs font-semibold px-2 py-1 rounded-full cursor-pointer outline-none appearance-none"
+                                  style={p.lawyer_type ? {
+                                    background: LAWYER_TYPE_LABELS[p.lawyer_type]?.bg,
+                                    color: LAWYER_TYPE_LABELS[p.lawyer_type]?.color,
+                                    border: `1px solid ${LAWYER_TYPE_LABELS[p.lawyer_type]?.color}40`,
+                                  } : {
+                                    background: "var(--bg)",
+                                    color: "var(--text-muted)",
+                                    border: "1px solid var(--border-c)",
+                                  }}>
+                                  <option value="">Не задан</option>
+                                  <option value="lawyer">Юрист</option>
+                                  <option value="advocate">Адвокат</option>
+                                </select>
+                              </div>
+                            )
+                          ) : (
+                            <span className="text-xs" style={{ color: "var(--text-muted)" }}>—</span>
+                          )}
+                        </td>
+                        <td className="px-5 py-3">
                           <button
                             onClick={() => { setSelectedLogin(p.login); setSelectedPartnerId(p.partner_id); }}
                             className="flex items-center gap-1 text-xs font-medium transition-opacity hover:opacity-70"
@@ -264,7 +318,19 @@ export default function AdminPartners({ sessionId }: Props) {
                       )}
                     </div>
                     <div className="flex items-center justify-between mt-2">
-                      <span className="text-xs" style={{ color: "var(--text-muted)" }}>Клиентов: {p.clients_count} · {fmtMoney(p.total_reward)}</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs" style={{ color: "var(--text-muted)" }}>Клиентов: {p.clients_count} · {fmtMoney(p.total_reward)}</span>
+                        {p.lawyer_type && (
+                          <span className="text-xs font-semibold px-1.5 py-0.5 rounded-full" style={{ background: LAWYER_TYPE_LABELS[p.lawyer_type]?.bg, color: LAWYER_TYPE_LABELS[p.lawyer_type]?.color }}>
+                            {LAWYER_TYPE_LABELS[p.lawyer_type]?.text}
+                          </span>
+                        )}
+                        {p.lawyer_type_requested && !p.lawyer_type && (
+                          <span className="text-xs px-1.5 py-0.5 rounded-full" style={{ background: "rgba(217,119,6,0.08)", color: "#d97706" }}>
+                            ⏳ {p.lawyer_type_requested === "lawyer" ? "Юрист" : "Адвокат"}
+                          </span>
+                        )}
+                      </div>
                       <Icon name="ChevronRight" size={15} style={{ color: "var(--blue)" }} />
                     </div>
                   </div>

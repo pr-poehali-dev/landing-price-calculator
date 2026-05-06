@@ -77,7 +77,8 @@ def get_or_create_partner(conn, user_id: int) -> dict | None:
     cur.execute(
         f"SELECT id, status, partner_type, inn, kpp, ogrn, full_name, short_name, legal_address, "
         f"director_name, bank_name, bank_bik, bank_account, bank_corr, "
-        f"contact_name, contact_phone, contact_email, ref_code, dadata_raw "
+        f"contact_name, contact_phone, contact_email, ref_code, dadata_raw, "
+        f"lawyer_type, lawyer_type_requested "
         f"FROM {SCHEMA}.partners WHERE user_id = %s",
         (user_id,),
     )
@@ -86,7 +87,8 @@ def get_or_create_partner(conn, user_id: int) -> dict | None:
         return None
     cols = ["id", "status", "partner_type", "inn", "kpp", "ogrn", "full_name", "short_name",
             "legal_address", "director_name", "bank_name", "bank_bik", "bank_account", "bank_corr",
-            "contact_name", "contact_phone", "contact_email", "ref_code", "dadata_raw"]
+            "contact_name", "contact_phone", "contact_email", "ref_code", "dadata_raw",
+            "lawyer_type", "lawyer_type_requested"]
     return dict(zip(cols, row))
 
 
@@ -147,7 +149,7 @@ def handler(event: dict, context) -> dict:
         fields = ["partner_type", "inn", "kpp", "ogrn", "full_name", "short_name",
                   "legal_address", "director_name", "bank_name", "bank_bik",
                   "bank_account", "bank_corr", "contact_name", "contact_phone",
-                  "contact_email"]
+                  "contact_email", "lawyer_type_requested"]
         values = [body.get(f) for f in fields]
 
         dadata_raw = body.get("dadata_raw")
@@ -673,6 +675,26 @@ def handler(event: dict, context) -> dict:
         conn.close()
         return ok({"ok": True})
 
+    # ── SET LAWYER TYPE (admin only) ──────────────────────────────────────────
+    if action == "set_lawyer_type":
+        if not is_admin:
+            return err("Только администратор", 403)
+        partner_id = body.get("partner_id")
+        lawyer_type = body.get("lawyer_type")  # 'lawyer', 'advocate' или None (сбросить)
+        if not partner_id:
+            return err("Укажите partner_id")
+        if lawyer_type not in (None, "lawyer", "advocate"):
+            return err("Допустимые значения: lawyer, advocate или null")
+        conn = get_conn()
+        cur = conn.cursor()
+        cur.execute(
+            f"UPDATE {SCHEMA}.partners SET lawyer_type = %s, updated_at = NOW() WHERE id = %s",
+            (lawyer_type, partner_id),
+        )
+        conn.commit()
+        conn.close()
+        return ok({"ok": True})
+
     # ── GET PARTNERS (admin only) ─────────────────────────────────────────────
     if action == "get_partners":
         if not is_admin:
@@ -705,7 +727,8 @@ def handler(event: dict, context) -> dict:
                        p.full_name, p.short_name, p.inn, p.ref_code,
                        p.contact_name, p.contact_phone, p.contact_email,
                        (SELECT COUNT(*) FROM {SCHEMA}.partner_clients pc WHERE pc.partner_id = p.id) as clients_count,
-                       (SELECT COALESCE(SUM(partner_reward),0) FROM {SCHEMA}.partner_clients pc WHERE pc.partner_id = p.id) as total_reward
+                       (SELECT COALESCE(SUM(partner_reward),0) FROM {SCHEMA}.partner_clients pc WHERE pc.partner_id = p.id) as total_reward,
+                       p.lawyer_type, p.lawyer_type_requested
                 FROM {SCHEMA}.users u
                 LEFT JOIN {SCHEMA}.partners p ON p.user_id = u.id
                 {where} AND u.role = 'partner'
@@ -716,7 +739,7 @@ def handler(event: dict, context) -> dict:
         cols = ["user_id", "login", "role", "partner_id", "status", "partner_type",
                 "full_name", "short_name", "inn", "ref_code",
                 "contact_name", "contact_phone", "contact_email",
-                "clients_count", "total_reward"]
+                "clients_count", "total_reward", "lawyer_type", "lawyer_type_requested"]
         partners = [dict(zip(cols, row)) for row in cur.fetchall()]
         conn.close()
         return ok({"partners": partners, "total": total, "page": page})
@@ -733,11 +756,20 @@ def handler(event: dict, context) -> dict:
             prow = cur.fetchone()
             partner_id = prow[0] if prow else None
 
+        # Определяем lawyer_type партнёра для фильтрации юридических тарифов
+        lawyer_type = None
+        if partner_id:
+            cur.execute(f"SELECT lawyer_type FROM {SCHEMA}.partners WHERE id = %s", (partner_id,))
+            lt_row = cur.fetchone()
+            lawyer_type = lt_row[0] if lt_row else None
+
         cur.execute(
             f"SELECT id, category, name, description, base_price, price_note, sort_order FROM {SCHEMA}.services WHERE active = true ORDER BY sort_order",
         )
         svc_cols = ["id", "category", "name", "description", "base_price", "price_note", "sort_order"]
-        services = [dict(zip(svc_cols, row)) for row in cur.fetchall()]
+        all_services = [dict(zip(svc_cols, row)) for row in cur.fetchall()]
+        # Услуги категории 'Для юристов' доступны только при подтверждённом lawyer_type
+        services = [s for s in all_services if s["category"] != "Для юристов" or lawyer_type in ("lawyer", "advocate")]
 
         rates = {}
         if partner_id:

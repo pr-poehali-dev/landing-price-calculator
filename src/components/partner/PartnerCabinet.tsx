@@ -37,6 +37,7 @@ export default function PartnerCabinet({ sessionId, userLogin, isAdmin = false, 
   const [selectedClientId, setSelectedClientId] = useState<number | null>(null);
   const [missingCount, setMissingCount] = useState(0);
   const [resolvedPartnerId, setResolvedPartnerId] = useState<number | undefined>(partnerId);
+  const [lawyerType, setLawyerType] = useState<string | null>(null);
 
   useEffect(() => {
     if (isAdmin) return;
@@ -45,6 +46,7 @@ export default function PartnerCabinet({ sessionId, userLogin, isAdmin = false, 
         const p = data.partner as Record<string, unknown>;
         setMissingCount(REQUIRED_FIELDS.filter(k => !p[k]).length);
         if (p.id) setResolvedPartnerId(p.id as number);
+        setLawyerType((p.lawyer_type as string) || null);
       } else {
         setMissingCount(REQUIRED_FIELDS.length);
       }
@@ -104,7 +106,7 @@ export default function PartnerCabinet({ sessionId, userLogin, isAdmin = false, 
               <p className="text-sm text-center py-8" style={{ color: "var(--text-muted)" }}>Сначала заполните профиль партнёра</p>
             )}
             {tab === "rates" && resolvedPartnerId && (
-              <PartnerRates sessionId={sessionId} partnerId={resolvedPartnerId} isAdmin={isAdmin} />
+              <PartnerRates sessionId={sessionId} partnerId={resolvedPartnerId} isAdmin={isAdmin} lawyerType={lawyerType} />
             )}
             {tab === "rates" && !resolvedPartnerId && (
               <p className="text-sm text-center py-8" style={{ color: "var(--text-muted)" }}>Сначала заполните профиль партнёра</p>

@@ -15,6 +15,7 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [role, setRole] = useState<"client" | "partner">("client");
+  const [lawyerTypeRequested, setLawyerTypeRequested] = useState<"" | "lawyer" | "advocate">("");
   const [consent, setConsent] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -37,7 +38,7 @@ export default function Login() {
       const res = await fetch(AUTH_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: tab, login: login.trim().toLowerCase(), password, role: tab === "register" ? role : undefined }),
+        body: JSON.stringify({ action: tab, login: login.trim().toLowerCase(), password, role: tab === "register" ? role : undefined, lawyer_type_requested: tab === "register" && role === "partner" && lawyerTypeRequested ? lawyerTypeRequested : undefined }),
       });
       const data = await res.json();
 
@@ -182,6 +183,39 @@ export default function Login() {
                   {opt.label}
                 </button>
               ))}
+            </div>
+          )}
+
+          {tab === "register" && role === "partner" && (
+            <div>
+              <p className="text-xs font-medium mb-2" style={{ color: "var(--text-muted)" }}>
+                Я являюсь (необязательно)
+              </p>
+              <div className="flex gap-2">
+                {([
+                  { value: "lawyer", label: "Юристом" },
+                  { value: "advocate", label: "Адвокатом" },
+                ] as const).map((opt) => (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => setLawyerTypeRequested(v => v === opt.value ? "" : opt.value)}
+                    className="flex-1 py-2 rounded-lg text-xs font-medium transition-all border"
+                    style={{
+                      background: lawyerTypeRequested === opt.value ? "var(--gold)" : "var(--bg)",
+                      color: lawyerTypeRequested === opt.value ? "var(--navy)" : "var(--text-muted)",
+                      borderColor: lawyerTypeRequested === opt.value ? "var(--gold)" : "var(--border-c)",
+                    }}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+              {lawyerTypeRequested && (
+                <p className="text-xs mt-1.5" style={{ color: "var(--text-muted)" }}>
+                  Доступ к тарифам для юристов будет открыт после подтверждения администратором
+                </p>
+              )}
             </div>
           )}
 
