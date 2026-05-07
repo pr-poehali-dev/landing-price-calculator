@@ -1,89 +1,15 @@
 import { useState, useEffect, useRef } from "react";
 import Icon from "@/components/ui/icon";
-import PhoneInput from "@/components/ui/PhoneInput";
-import EmailInput from "@/components/ui/EmailInput";
+import { apiPartner, type Partner } from "./types";
 import {
-  apiPartner, DADATA_TOKEN, PARTNER_TYPE_LABELS,
-  type Partner, type PartnerType,
-} from "./types";
-
-const SUGGEST_PARTY  = "https://suggestions.dadata.ru/suggestions/api/4_1/rs/suggest/party";
-const FIND_PARTY     = "https://suggestions.dadata.ru/suggestions/api/4_1/rs/findById/party";
-const SUGGEST_BANK   = "https://suggestions.dadata.ru/suggestions/api/4_1/rs/suggest/bank";
-const SUGGEST_ADDR   = "https://suggestions.dadata.ru/suggestions/api/4_1/rs/suggest/address";
-const SUGGEST_FIO    = "https://suggestions.dadata.ru/suggestions/api/4_1/rs/suggest/fio";
+  SUGGEST_PARTY, FIND_PARTY, SUGGEST_BANK, SUGGEST_ADDR, SUGGEST_FIO,
+  REQUIRED_FIELDS, ddFetch, type DDSuggestion,
+} from "./ProfileShared";
+import ProfileSectionRequisites from "./ProfileSectionRequisites";
+import ProfileSectionBank from "./ProfileSectionBank";
+import ProfileSectionContact from "./ProfileSectionContact";
 
 interface Props { sessionId: string; onSaved?: (p: Partner) => void; isAdmin?: boolean }
-interface DDSuggestion { value: string; data: Record<string, unknown> }
-
-const INPUT = "w-full px-4 py-3 rounded-lg text-sm outline-none transition-all font-body";
-const inputStyle = { background: "var(--bg)", border: "1px solid var(--border-c)", color: "var(--text)" };
-const inputStyleMissing = { background: "rgba(239,68,68,0.04)", border: "1px solid rgba(239,68,68,0.35)", color: "var(--text)" };
-
-function Field({ label, children, required, missing }: { label: string; children: React.ReactNode; required?: boolean; missing?: boolean }) {
-  return (
-    <div>
-      <label className="block text-xs font-semibold mb-1.5 flex items-center gap-1" style={{ color: missing ? "#ef4444" : "var(--text-muted)" }}>
-        {label}{required && <span style={{ color: "#ef4444" }}> *</span>}
-        {missing && <span className="text-xs font-normal">(не заполнено)</span>}
-      </label>
-      {children}
-    </div>
-  );
-}
-
-async function ddFetch(url: string, body: object): Promise<DDSuggestion[]> {
-  if (!DADATA_TOKEN) return [];
-  const res = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: `Token ${DADATA_TOKEN}` },
-    body: JSON.stringify(body),
-  }).catch(() => null);
-  if (!res) return [];
-  const d = await res.json();
-  return d.suggestions || [];
-}
-
-function DaDropdown({ suggestions, onSelect, loading }: {
-  suggestions: DDSuggestion[];
-  onSelect: (s: DDSuggestion) => void;
-  loading: boolean;
-}) {
-  if (loading) return (
-    <div className="absolute right-3 top-1/2 -translate-y-1/2">
-      <Icon name="LoaderCircle" size={14} className="animate-spin" style={{ color: "var(--text-muted)" }} />
-    </div>
-  );
-  if (!suggestions.length) return null;
-  return (
-    <ul className="absolute left-0 right-0 z-50 rounded-xl overflow-hidden text-sm mt-1"
-      style={{ background: "#fff", border: "1px solid var(--border-c)", boxShadow: "0 8px 24px rgba(0,0,0,0.10)", top: "100%" }}>
-      {suggestions.map((s, i) => (
-        <li key={i} onMouseDown={() => onSelect(s)}
-          className="px-4 py-2.5 cursor-pointer"
-          style={{ borderBottom: i < suggestions.length - 1 ? "1px solid var(--border-c)" : "none" }}
-          onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.background = "var(--bg)")}
-          onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.background = "#fff")}>
-          <p className="font-medium truncate" style={{ color: "var(--navy)" }}>{s.value}</p>
-          {s.data.inn && <p className="text-xs" style={{ color: "var(--text-muted)" }}>ИНН: {String(s.data.inn)}</p>}
-          {s.data.bic && <p className="text-xs" style={{ color: "var(--text-muted)" }}>БИК: {String(s.data.bic)}</p>}
-        </li>
-      ))}
-    </ul>
-  );
-}
-
-const REQUIRED_FIELDS: { key: string; label: string }[] = [
-  { key: "inn",          label: "ИНН" },
-  { key: "full_name",    label: "Полное наименование" },
-  { key: "legal_address",label: "Юридический адрес" },
-  { key: "director_name",label: "Руководитель / ФИО ИП" },
-  { key: "bank_bik",     label: "БИК банка" },
-  { key: "bank_account", label: "Расчётный счёт" },
-  { key: "contact_name", label: "Контактное лицо" },
-  { key: "contact_phone",label: "Телефон" },
-  { key: "contact_email",label: "Email" },
-];
 
 export default function PartnerProfile({ sessionId, onSaved, isAdmin = false }: Props) {
   const [loading, setLoading] = useState(true);
@@ -319,178 +245,27 @@ export default function PartnerProfile({ sessionId, onSaved, isAdmin = false }: 
         </div>
       )}
 
-      {/* Тип партнёра */}
-      <div>
-        <h3 className="text-sm font-bold mb-4 uppercase tracking-wide" style={{ color: "var(--text-muted)" }}>Тип партнёра</h3>
-        <div className="grid sm:grid-cols-3 gap-3">
-          {(Object.entries(PARTNER_TYPE_LABELS) as [PartnerType, string][]).map(([val, label]) => (
-            <label key={val} className="flex items-center gap-3 rounded-xl px-4 py-3 cursor-pointer transition-all"
-              style={{
-                border: `2px solid ${form.partner_type === val ? "var(--blue)" : "var(--border-c)"}`,
-                background: form.partner_type === val ? "var(--blue-dim)" : "var(--bg)",
-              }}>
-              <input type="radio" name="partner_type" value={val} checked={form.partner_type === val}
-                onChange={set("partner_type")} className="hidden" />
-              <div className="w-4 h-4 rounded-full border-2 flex-shrink-0 flex items-center justify-center"
-                style={{ borderColor: form.partner_type === val ? "var(--blue)" : "var(--border-c)" }}>
-                {form.partner_type === val && <div className="w-2 h-2 rounded-full" style={{ background: "var(--blue)" }} />}
-              </div>
-              <span className="text-sm font-medium" style={{ color: form.partner_type === val ? "var(--navy)" : "var(--text-muted)" }}>{label}</span>
-            </label>
-          ))}
-        </div>
-      </div>
+      <ProfileSectionRequisites
+        form={form} set={set} isMissing={isMissing}
+        partySugg={partySugg} partyOpen={partyOpen} partyLoading={partyLoading}
+        setPartyOpen={setPartyOpen} applyParty={applyParty}
+        addrSugg={addrSugg} addrOpen={addrOpen} addrLoading={addrLoading}
+        setAddrOpen={setAddrOpen} applyAddr={applyAddr}
+        dirSugg={dirSugg} dirOpen={dirOpen} dirLoading={dirLoading}
+        setDirOpen={setDirOpen} applyDir={applyDir}
+      />
 
-      {/* Реквизиты */}
-      <div>
-        <h3 className="text-sm font-bold mb-4 uppercase tracking-wide" style={{ color: "var(--text-muted)" }}>Реквизиты</h3>
+      <ProfileSectionBank
+        form={form} set={set} isMissing={isMissing}
+        bankSugg={bankSugg} bankOpen={bankOpen} bankLoading={bankLoading}
+        setBankOpen={setBankOpen} applyBank={applyBank}
+      />
 
-        {/* ИНН с DaData — вне грида чтобы дропдаун не обрезался */}
-        <div className="mb-4">
-          <Field label="ИНН" required missing={isMissing("inn")}>
-            <div className="relative">
-              <input className={INPUT} style={isMissing("inn") ? inputStyleMissing : inputStyle}
-                placeholder="Введите ИНН — данные подтянутся автоматически"
-                value={form.inn} onChange={set("inn")}
-                onFocus={() => partySugg.length > 0 && setPartyOpen(true)}
-                onBlur={() => setTimeout(() => setPartyOpen(false), 150)} />
-              <DaDropdown suggestions={partyOpen ? partySugg : []} onSelect={applyParty} loading={partyLoading} />
-            </div>
-          </Field>
-        </div>
-
-        <div className="grid sm:grid-cols-2 gap-4">
-          {form.partner_type === "legal" && (
-            <Field label="КПП">
-              <input className={INPUT} style={inputStyle} placeholder="КПП" value={form.kpp} onChange={set("kpp")} />
-            </Field>
-          )}
-
-          <Field label="ОГРН / ОГРНИП">
-            <input className={INPUT} style={inputStyle} placeholder="ОГРН" value={form.ogrn} onChange={set("ogrn")} />
-          </Field>
-        </div>
-
-        <div className="grid sm:grid-cols-2 gap-4 mt-4">
-          <Field label="Полное наименование" missing={isMissing("full_name")}>
-            <input className={INPUT} style={isMissing("full_name") ? inputStyleMissing : inputStyle}
-              placeholder="ООО «Ромашка»" value={form.full_name} onChange={set("full_name")} />
-          </Field>
-          <Field label="Краткое наименование">
-            <input className={INPUT} style={inputStyle} placeholder="Ромашка" value={form.short_name} onChange={set("short_name")} />
-          </Field>
-        </div>
-
-        {/* Адрес с DaData */}
-        <div className="mt-4">
-          <Field label="Юридический адрес" missing={isMissing("legal_address")}>
-            <div className="relative">
-              <input className={INPUT} style={isMissing("legal_address") ? inputStyleMissing : inputStyle}
-                placeholder="г. Москва, ул. Ленина, д. 1"
-                value={form.legal_address} onChange={set("legal_address")}
-                onFocus={() => addrSugg.length > 0 && setAddrOpen(true)}
-                onBlur={() => setTimeout(() => setAddrOpen(false), 150)} />
-              <DaDropdown suggestions={addrOpen ? addrSugg : []} onSelect={applyAddr} loading={addrLoading} />
-            </div>
-          </Field>
-        </div>
-
-        {/* ФИО директора с DaData */}
-        <div className="mt-4">
-          <Field label="Руководитель / ФИО ИП" missing={isMissing("director_name")}>
-            <div className="relative">
-              <input className={INPUT} style={isMissing("director_name") ? inputStyleMissing : inputStyle}
-                placeholder="Иванов Иван Иванович"
-                value={form.director_name} onChange={set("director_name")}
-                onFocus={() => dirSugg.length > 0 && setDirOpen(true)}
-                onBlur={() => setTimeout(() => setDirOpen(false), 150)} />
-              <DaDropdown suggestions={dirOpen ? dirSugg : []} onSelect={applyDir} loading={dirLoading} />
-            </div>
-          </Field>
-        </div>
-      </div>
-
-      {/* Банковские реквизиты */}
-      <div>
-        <h3 className="text-sm font-bold mb-4 uppercase tracking-wide" style={{ color: "var(--text-muted)" }}>Банковские реквизиты</h3>
-
-        {/* БИК с DaData — вне грида */}
-        <div className="mb-4">
-          <Field label="БИК" missing={isMissing("bank_bik")}>
-            <div className="relative">
-              <input className={INPUT} style={isMissing("bank_bik") ? inputStyleMissing : inputStyle}
-                placeholder="044525225 — банк и корр. счёт подтянутся автоматически"
-                value={form.bank_bik} onChange={set("bank_bik")}
-                onFocus={() => bankSugg.length > 0 && setBankOpen(true)}
-                onBlur={() => setTimeout(() => setBankOpen(false), 150)} />
-              <DaDropdown suggestions={bankOpen ? bankSugg : []} onSelect={applyBank} loading={bankLoading} />
-            </div>
-          </Field>
-        </div>
-
-        <div className="grid sm:grid-cols-3 gap-4">
-          <Field label="Название банка">
-            <input className={INPUT} style={inputStyle} placeholder="Заполнится по БИК" value={form.bank_name} onChange={set("bank_name")} />
-          </Field>
-          <Field label="Расчётный счёт" missing={isMissing("bank_account")}>
-            <input className={INPUT} style={isMissing("bank_account") ? inputStyleMissing : inputStyle}
-              placeholder="40702810000000000000" value={form.bank_account} onChange={set("bank_account")} />
-          </Field>
-          <Field label="Корр. счёт">
-            <input className={INPUT} style={inputStyle} placeholder="Заполнится по БИК" value={form.bank_corr} onChange={set("bank_corr")} />
-          </Field>
-        </div>
-      </div>
-
-      {/* Контактное лицо */}
-      <div>
-        <h3 className="text-sm font-bold mb-4 uppercase tracking-wide" style={{ color: "var(--text-muted)" }}>Контактное лицо</h3>
-        <div className="mb-4">
-          <Field label="ФИО" missing={isMissing("contact_name")}>
-            <div className="relative">
-              <input className={INPUT} style={isMissing("contact_name") ? inputStyleMissing : inputStyle}
-                placeholder="Петров Пётр Петрович"
-                value={form.contact_name} onChange={set("contact_name")}
-                onFocus={() => ctcSugg.length > 0 && setCtcOpen(true)}
-                onBlur={() => setTimeout(() => setCtcOpen(false), 150)} />
-              <DaDropdown suggestions={ctcOpen ? ctcSugg : []} onSelect={applyCtc} loading={ctcLoading} />
-            </div>
-          </Field>
-        </div>
-        <div className="grid sm:grid-cols-2 gap-4">
-          <Field label="Телефон" missing={isMissing("contact_phone")}>
-            <PhoneInput className={INPUT} style={isMissing("contact_phone") ? inputStyleMissing : inputStyle}
-              value={form.contact_phone} onChange={v => setForm(prev => ({ ...prev, contact_phone: v }))} />
-          </Field>
-          <div>
-            <Field label="Email" missing={isMissing("contact_email")}>
-              <EmailInput className={INPUT} style={isMissing("contact_email") ? inputStyleMissing : inputStyle}
-                value={form.contact_email} onChange={v => setForm(prev => ({ ...prev, contact_email: v }))} />
-            </Field>
-          </div>
-        </div>
-      </div>
-
-      {/* Реферальное вознаграждение */}
-      <div>
-        <h3 className="text-sm font-bold mb-1 uppercase tracking-wide" style={{ color: "var(--text-muted)" }}>Реферальная программа</h3>
-        <p className="text-xs mb-4" style={{ color: "var(--text-muted)" }}>
-          Если партнёр зарегистрируется по вашей реферальной ссылке, вы можете удерживать часть его вознаграждения в свою пользу. Например, при 5% — партнёр получит на 5% меньше стандартной ставки, а вы получите эти 5% с каждой его сделки.
-        </p>
-        <div style={{ maxWidth: 280 }}>
-          <Field label="Ваш реферальный процент (0–30%)">
-            <div className="flex items-center gap-3">
-              <input
-                type="number" min="0" max="30" step="0.5"
-                className={INPUT} style={inputStyle}
-                value={form.referral_fee_percent}
-                onChange={e => setForm(prev => ({ ...prev, referral_fee_percent: e.target.value }))}
-              />
-              <span className="text-sm font-semibold flex-shrink-0" style={{ color: "var(--text-muted)" }}>%</span>
-            </div>
-          </Field>
-        </div>
-      </div>
+      <ProfileSectionContact
+        form={form} set={set} setForm={setForm} isMissing={isMissing}
+        ctcSugg={ctcSugg} ctcOpen={ctcOpen} ctcLoading={ctcLoading}
+        setCtcOpen={setCtcOpen} applyCtc={applyCtc}
+      />
 
       {error && (
         <div className="rounded-lg px-4 py-3 text-sm" style={{ background: "rgba(239,68,68,0.08)", color: "#ef4444", border: "1px solid rgba(239,68,68,0.2)" }}>
