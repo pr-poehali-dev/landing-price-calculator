@@ -21,6 +21,10 @@ interface Partner {
   total_reward: number;
   lawyer_type: string | null;
   lawyer_type_requested: string | null;
+  ref_partner_id: number | null;
+  ref_partner_short_name: string | null;
+  ref_partner_full_name: string | null;
+  ref_partner_login: string | null;
 }
 
 const LAWYER_TYPE_LABELS: Record<string, { text: string; color: string; bg: string }> = {
@@ -183,7 +187,7 @@ export default function AdminPartners({ sessionId }: Props) {
               <table className="w-full text-sm">
                 <thead>
                   <tr style={{ borderBottom: "1px solid var(--border-c)" }}>
-                    {["Логин", "Организация", "ИНН", "Контакт", "Клиентов", "Вознаграждение", "Статус", "Тип юриста", ""].map((h) => (
+                    {["Логин", "Организация", "ИНН", "Контакт", "Реферер", "Клиентов", "Вознаграждение", "Статус", "Тип юриста", ""].map((h) => (
                       <th key={h} className="px-5 py-3 text-left text-xs font-semibold" style={{ color: "var(--text-muted)" }}>{h}</th>
                     ))}
                   </tr>
@@ -210,6 +214,20 @@ export default function AdminPartners({ sessionId }: Props) {
                             {p.contact_email && <div style={{ color: "var(--text-muted)" }}>{p.contact_email}</div>}
                             {!p.contact_phone && !p.contact_email && <span style={{ color: "var(--text-muted)" }}>—</span>}
                           </div>
+                        </td>
+                        <td className="px-5 py-3">
+                          {p.ref_partner_id ? (
+                            <div className="text-xs">
+                              <div className="font-medium" style={{ color: "var(--navy)" }}>
+                                {p.ref_partner_short_name || p.ref_partner_full_name || p.ref_partner_login || "—"}
+                              </div>
+                              {p.ref_partner_login && (
+                                <div className="font-mono" style={{ color: "var(--text-muted)" }}>{p.ref_partner_login}</div>
+                              )}
+                            </div>
+                          ) : (
+                            <span className="text-xs" style={{ color: "var(--text-muted)" }}>—</span>
+                          )}
                         </td>
                         <td className="px-5 py-3 text-center">
                           <span className="text-sm font-bold" style={{ color: "var(--navy)" }}>{p.clients_count}</span>
@@ -318,8 +336,13 @@ export default function AdminPartners({ sessionId }: Props) {
                       )}
                     </div>
                     <div className="flex items-center justify-between mt-2">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 flex-wrap">
                         <span className="text-xs" style={{ color: "var(--text-muted)" }}>Клиентов: {p.clients_count} · {fmtMoney(p.total_reward)}</span>
+                        {p.ref_partner_id && (
+                          <span className="text-xs px-1.5 py-0.5 rounded-full" style={{ background: "var(--blue-dim)", color: "var(--blue)" }}>
+                            реф: {p.ref_partner_short_name || p.ref_partner_login || "—"}
+                          </span>
+                        )}
                         {p.lawyer_type && (
                           <span className="text-xs font-semibold px-1.5 py-0.5 rounded-full" style={{ background: LAWYER_TYPE_LABELS[p.lawyer_type]?.bg, color: LAWYER_TYPE_LABELS[p.lawyer_type]?.color }}>
                             {LAWYER_TYPE_LABELS[p.lawyer_type]?.text}

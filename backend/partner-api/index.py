@@ -731,9 +731,15 @@ def handler(event: dict, context) -> dict:
                        p.contact_name, p.contact_phone, p.contact_email,
                        (SELECT COUNT(*) FROM {SCHEMA}.partner_clients pc WHERE pc.partner_id = p.id) as clients_count,
                        (SELECT COALESCE(SUM(partner_reward),0) FROM {SCHEMA}.partner_clients pc WHERE pc.partner_id = p.id) as total_reward,
-                       p.lawyer_type, p.lawyer_type_requested
+                       p.lawyer_type, p.lawyer_type_requested,
+                       p.ref_partner_id,
+                       rp.short_name as ref_partner_short_name,
+                       rp.full_name as ref_partner_full_name,
+                       ru.login as ref_partner_login
                 FROM {SCHEMA}.users u
                 LEFT JOIN {SCHEMA}.partners p ON p.user_id = u.id
+                LEFT JOIN {SCHEMA}.partners rp ON rp.id = p.ref_partner_id
+                LEFT JOIN {SCHEMA}.users ru ON ru.id = rp.user_id
                 {where} AND u.role = 'partner'
                 ORDER BY u.id DESC
                 LIMIT %s OFFSET %s""",
@@ -742,7 +748,8 @@ def handler(event: dict, context) -> dict:
         cols = ["user_id", "login", "role", "partner_id", "status", "partner_type",
                 "full_name", "short_name", "inn", "ref_code",
                 "contact_name", "contact_phone", "contact_email",
-                "clients_count", "total_reward", "lawyer_type", "lawyer_type_requested"]
+                "clients_count", "total_reward", "lawyer_type", "lawyer_type_requested",
+                "ref_partner_id", "ref_partner_short_name", "ref_partner_full_name", "ref_partner_login"]
         partners = [dict(zip(cols, row)) for row in cur.fetchall()]
         conn.close()
         return ok({"partners": partners, "total": total, "page": page})
