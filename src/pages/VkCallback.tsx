@@ -1,6 +1,5 @@
 import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { useVkAuth } from "@/components/extensions/vk-auth/useVkAuth";
 import Icon from "@/components/ui/icon";
 
 const VK_AUTH_URL = "https://functions.poehali.dev/86f3f05d-2e0a-462a-aa06-2c00d428c502";
@@ -10,46 +9,57 @@ export default function VkCallback() {
   const navigate = useNavigate();
   const handled = useRef(false);
 
-  const vkAuth = useVkAuth({
-    apiUrls: {
-      authUrl: `${VK_AUTH_URL}?action=auth-url`,
-      callback: `${VK_AUTH_URL}?action=callback`,
-      refresh: `${VK_AUTH_URL}?action=refresh`,
-      logout: `${VK_AUTH_URL}?action=logout`,
-    },
-  });
-
   useEffect(() => {
     if (handled.current) return;
     handled.current = true;
 
-    vkAuth.handleCallback().then(async (success) => {
-      if (success && vkAuth.user) {
-        // Создаём совместимую сессию через основной auth
-        try {
-          const res = await fetch(AUTH_URL, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              action: "vk_login",
-              vk_id: vkAuth.user.vk_id,
-              login: vkAuth.user.name ? `vk_${vkAuth.user.vk_id}` : undefined,
-            }),
-          });
-          const data = await res.json();
-          if (data.session_id) {
-            localStorage.setItem("session_id", data.session_id);
-            localStorage.setItem("user", JSON.stringify(data.user));
-          }
-        } catch {
-          // даже если не удалось — пускаем дальше
+    (async () => {
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const code = params.get("code");
+        const device_id = params.get("device_id") || "";
+
+        if (!code) { navigate("/login"); return; }
+
+        const code_verifier = sessionStorage.getItem("vk_auth_code_verifier");
+        if (!code_verifier) { navigate("/login"); return; }
+
+        // 1. Обмениваем code на токены VK и получаем user
+        const vkRes = await fetch(`${VK_AUTH_URL}?action=callback`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ code, code_verifier, device_id }),
+        });
+        const vkData = await vkRes.json();
+
+        if (!vkRes.ok || !vkData.user) { navigate("/login"); return; }
+
+        sessionStorage.removeItem("vk_auth_code_verifier");
+        sessionStorage.removeItem("vk_auth_state");
+
+        // 2. Создаём session_id через основной auth
+        const authRes = await fetch(AUTH_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "vk_login",
+            vk_id: vkData.user.vk_id,
+            login: `vk_${vkData.user.vk_id}`,
+          }),
+        });
+        const authData = await authRes.json();
+
+        if (authData.session_id) {
+          localStorage.setItem("session_id", authData.session_id);
+          localStorage.setItem("user", JSON.stringify(authData.user));
         }
+
         navigate("/cabinet");
-      } else {
+      } catch {
         navigate("/login");
       }
-    });
-  }, [vkAuth.user]);
+    })();
+  }, []);
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center gap-4">

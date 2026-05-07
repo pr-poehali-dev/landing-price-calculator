@@ -442,8 +442,21 @@ export default function Login() {
           <span className="text-xs" style={{ color: "var(--text-muted)" }}>или</span>
           <div className="flex-1 h-px" style={{ background: "var(--border-c)" }} />
         </div>
-        <div className="mt-3">
-          <VkLoginButton onClick={vkAuth.login} isLoading={vkAuth.isLoading} className="w-full" />
+        {/* Общий чекбокс для VK */}
+        <label className="flex items-start gap-3 cursor-pointer select-none mt-3">
+          <div
+            onClick={() => setConsent(!consent)}
+            className="w-4 h-4 rounded border flex-shrink-0 mt-0.5 flex items-center justify-center transition-all cursor-pointer"
+            style={{ background: consent ? "var(--navy)" : "transparent", borderColor: consent ? "var(--navy)" : "var(--border-c)" }}>
+            {consent && <Icon name="Check" size={10} style={{ color: "#fff" }} />}
+          </div>
+          <span className="text-xs leading-relaxed" style={{ color: "var(--text-muted)" }}>
+            Я принимаю условия{" "}
+            <Link to="/offer" className="underline" style={{ color: "var(--navy)" }}>пользовательского соглашения</Link>
+          </span>
+        </label>
+        <div className="mt-2">
+          <VkLoginButton onClick={vkAuth.login} isLoading={vkAuth.isLoading} disabled={!consent} className="w-full" />
         </div>
       </div>
 

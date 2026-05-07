@@ -14,7 +14,7 @@ def get_connection():
 
 def get_schema() -> str:
     """Get schema prefix from env. Returns 'schema.' or empty string."""
-    schema = os.environ.get('MAIN_DB_SCHEMA', '')
+    schema = os.environ.get('MAIN_DB_SCHEMA', 't_p60076574_landing_price_calcul')
     return f"{schema}." if schema else ""
 
 
