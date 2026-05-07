@@ -78,7 +78,7 @@ def get_or_create_partner(conn, user_id: int) -> dict | None:
         f"SELECT id, status, partner_type, inn, kpp, ogrn, full_name, short_name, legal_address, "
         f"director_name, bank_name, bank_bik, bank_account, bank_corr, "
         f"contact_name, contact_phone, contact_email, ref_code, dadata_raw, "
-        f"lawyer_type, lawyer_type_requested "
+        f"lawyer_type, lawyer_type_requested, referral_fee_percent, ref_partner_id "
         f"FROM {SCHEMA}.partners WHERE user_id = %s",
         (user_id,),
     )
@@ -88,8 +88,11 @@ def get_or_create_partner(conn, user_id: int) -> dict | None:
     cols = ["id", "status", "partner_type", "inn", "kpp", "ogrn", "full_name", "short_name",
             "legal_address", "director_name", "bank_name", "bank_bik", "bank_account", "bank_corr",
             "contact_name", "contact_phone", "contact_email", "ref_code", "dadata_raw",
-            "lawyer_type", "lawyer_type_requested"]
-    return dict(zip(cols, row))
+            "lawyer_type", "lawyer_type_requested", "referral_fee_percent", "ref_partner_id"]
+    p = dict(zip(cols, row))
+    if p["referral_fee_percent"] is not None:
+        p["referral_fee_percent"] = float(p["referral_fee_percent"])
+    return p
 
 
 def generate_ref_code(login: str) -> str:
@@ -149,7 +152,7 @@ def handler(event: dict, context) -> dict:
         fields = ["partner_type", "inn", "kpp", "ogrn", "full_name", "short_name",
                   "legal_address", "director_name", "bank_name", "bank_bik",
                   "bank_account", "bank_corr", "contact_name", "contact_phone",
-                  "contact_email", "lawyer_type_requested"]
+                  "contact_email", "lawyer_type_requested", "referral_fee_percent"]
         values = [body.get(f) for f in fields]
 
         dadata_raw = body.get("dadata_raw")
@@ -961,19 +964,49 @@ def handler(event: dict, context) -> dict:
         for p in payments:
             p["amount"] = float(p["amount"])
 
+        # Реферальный доход: % с вознаграждений рефералов (партнёров, зарегистрированных по ссылке)
+        cur.execute(
+            f"""SELECT
+                    rp.id, rp.full_name, rp.short_name,
+                    COALESCE(SUM(pc.partner_reward), 0) AS referrals_total_reward,
+                    p.referral_fee_percent
+                FROM {SCHEMA}.partners p
+                JOIN {SCHEMA}.partners rp ON rp.ref_partner_id = p.id
+                LEFT JOIN {SCHEMA}.partner_clients pc ON pc.partner_id = rp.id
+                WHERE p.id = %s AND p.referral_fee_percent > 0
+                GROUP BY rp.id, rp.full_name, rp.short_name, p.referral_fee_percent""",
+            (partner_id,),
+        )
+        referral_rows = cur.fetchall()
+        referral_partners = []
+        referral_income = 0.0
+        for row in referral_rows:
+            ref_reward = float(row[3]) * float(row[4]) / 100
+            referral_income += ref_reward
+            referral_partners.append({
+                "partner_id": row[0],
+                "name": row[2] or row[1] or "—",
+                "their_total_reward": float(row[3]),
+                "fee_percent": float(row[4]),
+                "your_income": round(ref_reward, 2),
+            })
+
         # Сводка — paid_reward считаем через реальные выплаты
         total_reward   = sum(c["partner_reward"] or 0 for c in clients)
         total_payments = sum(p["amount"] for p in payments)
-        pending_reward = max(0, total_reward - total_payments)
+        pending_reward = max(0, total_reward + referral_income - total_payments)
 
         conn.close()
         return ok({
             "clients": clients,
             "payments": payments,
+            "referral_partners": referral_partners,
             "summary": {
                 "total_reward": total_reward,
+                "referral_income": round(referral_income, 2),
+                "total_with_referrals": round(total_reward + referral_income, 2),
                 "paid_reward": total_payments,
-                "pending_reward": pending_reward,
+                "pending_reward": round(pending_reward, 2),
                 "total_payments": total_payments,
             },
         })

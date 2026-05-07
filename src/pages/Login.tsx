@@ -38,7 +38,7 @@ export default function Login() {
       const res = await fetch(AUTH_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: tab, login: login.trim().toLowerCase(), password, role: tab === "register" ? role : undefined, lawyer_type_requested: tab === "register" && role === "partner" && lawyerTypeRequested ? lawyerTypeRequested : undefined }),
+        body: JSON.stringify({ action: tab, login: login.trim().toLowerCase(), password, role: tab === "register" ? role : undefined, lawyer_type_requested: tab === "register" && role === "partner" && lawyerTypeRequested ? lawyerTypeRequested : undefined, ref_code: tab === "register" && role === "partner" ? (localStorage.getItem("ref_code") || undefined) : undefined }),
       });
       const data = await res.json();
 

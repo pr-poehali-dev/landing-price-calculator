@@ -129,9 +129,20 @@ def handler(event: dict, context) -> dict:
             if lawyer_type_requested not in ("lawyer", "advocate"):
                 lawyer_type_requested = None
             ref_code = (login[:4].upper() + secrets.token_hex(3).upper())[:10]
+            # Ищем партнёра-реферера по ref_code из тела запроса
+            referrer_ref_code = body.get("ref_code")
+            ref_partner_id = None
+            if referrer_ref_code:
+                cur.execute(
+                    f"SELECT id FROM {SCHEMA}.partners WHERE ref_code = %s",
+                    (referrer_ref_code,),
+                )
+                ref_row = cur.fetchone()
+                if ref_row:
+                    ref_partner_id = ref_row[0]
             cur.execute(
-                f"INSERT INTO {SCHEMA}.partners (user_id, ref_code, lawyer_type_requested) VALUES (%s, %s, %s)",
-                (user_id, ref_code, lawyer_type_requested),
+                f"INSERT INTO {SCHEMA}.partners (user_id, ref_code, lawyer_type_requested, ref_partner_id) VALUES (%s, %s, %s, %s)",
+                (user_id, ref_code, lawyer_type_requested, ref_partner_id),
             )
 
         sid = make_session_id()

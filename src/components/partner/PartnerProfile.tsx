@@ -93,6 +93,7 @@ export default function PartnerProfile({ sessionId, onSaved, isAdmin = false }: 
     partner_type: "legal", inn: "", kpp: "", ogrn: "", full_name: "", short_name: "",
     legal_address: "", director_name: "", bank_name: "", bank_bik: "", bank_account: "",
     bank_corr: "", contact_name: "", contact_phone: "", contact_email: "",
+    referral_fee_percent: "0",
   });
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState("");
@@ -143,6 +144,7 @@ export default function PartnerProfile({ sessionId, onSaved, isAdmin = false }: 
           bank_account: p.bank_account || "", bank_corr: p.bank_corr || "",
           contact_name: p.contact_name || "", contact_phone: p.contact_phone || "",
           contact_email: p.contact_email || "",
+          referral_fee_percent: String(p.referral_fee_percent ?? 0),
         };
         setForm(f);
         const missing = REQUIRED_FIELDS.filter(rf => !f[rf.key]);
@@ -466,6 +468,27 @@ export default function PartnerProfile({ sessionId, onSaved, isAdmin = false }: 
                 value={form.contact_email} onChange={v => setForm(prev => ({ ...prev, contact_email: v }))} />
             </Field>
           </div>
+        </div>
+      </div>
+
+      {/* Реферальное вознаграждение */}
+      <div>
+        <h3 className="text-sm font-bold mb-1 uppercase tracking-wide" style={{ color: "var(--text-muted)" }}>Реферальная программа</h3>
+        <p className="text-xs mb-4" style={{ color: "var(--text-muted)" }}>
+          Если партнёр зарегистрируется по вашей реферальной ссылке, вы можете удерживать часть его вознаграждения в свою пользу. Например, при 5% — партнёр получит на 5% меньше стандартной ставки, а вы получите эти 5% с каждой его сделки.
+        </p>
+        <div style={{ maxWidth: 280 }}>
+          <Field label="Ваш реферальный процент (0–30%)">
+            <div className="flex items-center gap-3">
+              <input
+                type="number" min="0" max="30" step="0.5"
+                className={INPUT} style={inputStyle}
+                value={form.referral_fee_percent}
+                onChange={e => setForm(prev => ({ ...prev, referral_fee_percent: e.target.value }))}
+              />
+              <span className="text-sm font-semibold flex-shrink-0" style={{ color: "var(--text-muted)" }}>%</span>
+            </div>
+          </Field>
         </div>
       </div>
 

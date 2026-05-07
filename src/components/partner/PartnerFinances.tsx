@@ -24,9 +24,19 @@ interface Payment {
 
 interface Summary {
   total_reward: number;
+  referral_income: number;
+  total_with_referrals: number;
   paid_reward: number;
   pending_reward: number;
   total_payments: number;
+}
+
+interface ReferralPartner {
+  partner_id: number;
+  name: string;
+  their_total_reward: number;
+  fee_percent: number;
+  your_income: number;
 }
 
 interface Props {
@@ -43,6 +53,7 @@ export default function PartnerFinances({ sessionId, partnerId, isAdmin }: Props
   const [clients, setClients] = useState<FinanceClient[]>([]);
   const [payments, setPayments] = useState<Payment[]>([]);
   const [summary, setSummary] = useState<Summary | null>(null);
+  const [referralPartners, setReferralPartners] = useState<ReferralPartner[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Форма новой выплаты (только для админа)
@@ -62,6 +73,7 @@ export default function PartnerFinances({ sessionId, partnerId, isAdmin }: Props
     setClients(data.clients || []);
     setPayments(data.payments || []);
     setSummary(data.summary || null);
+    setReferralPartners(data.referral_partners || []);
     setLoading(false);
   }, [sessionId, partnerId]);
 
@@ -118,20 +130,63 @@ export default function PartnerFinances({ sessionId, partnerId, isAdmin }: Props
 
       {/* Сводка */}
       {summary && (
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-          {[
-            { label: "Начислено всего", value: fmtMoney(summary.total_reward), color: "var(--navy)", icon: "Wallet" },
-            { label: "Выплачено", value: fmtMoney(summary.paid_reward), color: "var(--success)", icon: "BadgeCheck" },
-            { label: "К выплате", value: fmtMoney(summary.pending_reward), color: summary.pending_reward > 0 ? "#d97706" : "var(--text-muted)", icon: "Clock" },
-          ].map(card => (
-            <div key={card.label} className="rounded-2xl p-4" style={{ background: "var(--bg-white)", border: "1px solid var(--border-c)" }}>
-              <div className="flex items-center gap-2 mb-2">
-                <Icon name={card.icon as "Wallet"} size={14} style={{ color: card.color }} />
-                <p className="text-xs" style={{ color: "var(--text-muted)" }}>{card.label}</p>
+        <div className="space-y-3">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+            {[
+              { label: "Начислено (свои клиенты)", value: fmtMoney(summary.total_reward), color: "var(--navy)", icon: "Wallet" },
+              { label: "Выплачено", value: fmtMoney(summary.paid_reward), color: "var(--success)", icon: "BadgeCheck" },
+              { label: "К выплате", value: fmtMoney(summary.pending_reward), color: summary.pending_reward > 0 ? "#d97706" : "var(--text-muted)", icon: "Clock" },
+            ].map(card => (
+              <div key={card.label} className="rounded-2xl p-4" style={{ background: "var(--bg-white)", border: "1px solid var(--border-c)" }}>
+                <div className="flex items-center gap-2 mb-2">
+                  <Icon name={card.icon as "Wallet"} size={14} style={{ color: card.color }} />
+                  <p className="text-xs" style={{ color: "var(--text-muted)" }}>{card.label}</p>
+                </div>
+                <p className="text-lg font-bold" style={{ color: card.color }}>{card.value}</p>
               </div>
-              <p className="text-lg font-bold" style={{ color: card.color }}>{card.value}</p>
+            ))}
+          </div>
+          {summary.referral_income > 0 && (
+            <div className="rounded-2xl p-4 flex items-center justify-between" style={{ background: "var(--blue-dim)", border: "1px solid rgba(37,99,235,0.2)" }}>
+              <div className="flex items-center gap-2">
+                <Icon name="Users" size={14} style={{ color: "var(--blue)" }} />
+                <p className="text-sm font-medium" style={{ color: "var(--navy)" }}>Реферальный доход (с партнёров)</p>
+              </div>
+              <p className="text-lg font-bold" style={{ color: "var(--blue)" }}>+{fmtMoney(summary.referral_income)}</p>
             </div>
-          ))}
+          )}
+        </div>
+      )}
+
+      {/* Реферальные партнёры */}
+      {referralPartners.length > 0 && (
+        <div>
+          <div className="flex items-center gap-2 mb-3">
+            <Icon name="GitBranch" size={14} style={{ color: "var(--blue)" }} />
+            <p className="text-xs font-bold uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>Доход от партнёров-рефералов</p>
+          </div>
+          <div className="rounded-2xl overflow-hidden" style={{ border: "1px solid var(--border-c)" }}>
+            <table className="w-full text-sm">
+              <thead>
+                <tr style={{ background: "var(--bg)", borderBottom: "1px solid var(--border-c)" }}>
+                  <th className="px-4 py-2.5 text-left text-xs font-semibold" style={{ color: "var(--text-muted)" }}>Партнёр</th>
+                  <th className="px-4 py-2.5 text-right text-xs font-semibold" style={{ color: "var(--text-muted)" }}>Их вознаграждение</th>
+                  <th className="px-4 py-2.5 text-right text-xs font-semibold" style={{ color: "var(--text-muted)" }}>Ваш %</th>
+                  <th className="px-4 py-2.5 text-right text-xs font-semibold" style={{ color: "var(--text-muted)" }}>Ваш доход</th>
+                </tr>
+              </thead>
+              <tbody>
+                {referralPartners.map(rp => (
+                  <tr key={rp.partner_id} style={{ borderBottom: "1px solid var(--border-c)", background: "var(--bg-white)" }}>
+                    <td className="px-4 py-3 font-medium" style={{ color: "var(--text)" }}>{rp.name}</td>
+                    <td className="px-4 py-3 text-right" style={{ color: "var(--text-muted)" }}>{fmtMoney(rp.their_total_reward)}</td>
+                    <td className="px-4 py-3 text-right" style={{ color: "var(--text-muted)" }}>{rp.fee_percent}%</td>
+                    <td className="px-4 py-3 text-right font-semibold" style={{ color: "var(--blue)" }}>+{fmtMoney(rp.your_income)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
 
