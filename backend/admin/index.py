@@ -261,4 +261,43 @@ def handler(event: dict, context) -> dict:
         conn.close()
         return ok({"ok": True})
 
+    # ── СПИСОК ПОЛЬЗОВАТЕЛЕЙ ──────────────────────────────────────────────────
+    if action == "get_users":
+        page = int(body.get("page", 1))
+        q = body.get("q", "").strip()
+        limit = 30
+        offset = (page - 1) * limit
+
+        conn = get_conn()
+        cur = conn.cursor()
+
+        where = ""
+        if q:
+            q_esc = q.replace("'", "''")
+            where = f"WHERE u.login ILIKE '%{q_esc}%' OR u.email ILIKE '%{q_esc}%' OR u.name ILIKE '%{q_esc}%'"
+
+        cur.execute(f"SELECT COUNT(*) FROM {SCHEMA}.users u {where}")
+        total = cur.fetchone()[0]
+
+        cur.execute(f"""
+            SELECT u.id, u.login, u.email, u.name, u.role, u.vk_id,
+                   u.created_at, u.last_login_at
+            FROM {SCHEMA}.users u
+            {where}
+            ORDER BY u.created_at DESC
+            LIMIT %s OFFSET %s
+        """, (limit, offset))
+        rows = cur.fetchall()
+        conn.close()
+
+        users = [
+            {
+                "id": r[0], "login": r[1], "email": r[2], "name": r[3],
+                "role": r[4], "vk_id": r[5],
+                "created_at": r[6], "last_login_at": r[7],
+            }
+            for r in rows
+        ]
+        return ok({"users": users, "total": total, "page": page, "limit": limit})
+
     return err("Неизвестное действие", 400)
