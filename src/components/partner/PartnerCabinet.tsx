@@ -112,7 +112,7 @@ export default function PartnerCabinet({ sessionId, userLogin, isAdmin = false, 
               <p className="text-sm text-center py-8" style={{ color: "var(--text-muted)" }}>Сначала заполните профиль партнёра</p>
             )}
             {tab === "referral" && <PartnerReferral sessionId={sessionId} />}
-            {tab === "profile" && <PartnerProfile sessionId={sessionId} isAdmin={isAdmin} />}
+            {tab === "profile" && <PartnerProfile sessionId={sessionId} isAdmin={isAdmin} partnerId={isAdmin ? resolvedPartnerId : undefined} />}
           </>
         )}
       </div>

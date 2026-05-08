@@ -9,9 +9,9 @@ import ProfileSectionRequisites from "./ProfileSectionRequisites";
 import ProfileSectionBank from "./ProfileSectionBank";
 import ProfileSectionContact from "./ProfileSectionContact";
 
-interface Props { sessionId: string; onSaved?: (p: Partner) => void; isAdmin?: boolean }
+interface Props { sessionId: string; onSaved?: (p: Partner) => void; isAdmin?: boolean; partnerId?: number }
 
-export default function PartnerProfile({ sessionId, onSaved, isAdmin = false }: Props) {
+export default function PartnerProfile({ sessionId, onSaved, isAdmin = false, partnerId }: Props) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [partner, setPartner] = useState<Partner | null>(null);
@@ -57,7 +57,7 @@ export default function PartnerProfile({ sessionId, onSaved, isAdmin = false }: 
 
   useEffect(() => {
     (async () => {
-      const data = await apiPartner(sessionId, { action: "get_profile" });
+      const data = await apiPartner(sessionId, { action: "get_profile", ...(partnerId ? { partner_id: partnerId } : {}) });
       if (data.partner) {
         const p: Partner = data.partner;
         setPartner(p);
@@ -191,7 +191,7 @@ export default function PartnerProfile({ sessionId, onSaved, isAdmin = false }: 
     e.preventDefault();
     if (!form.inn.trim()) { setError("Укажите ИНН"); return; }
     setSaving(true); setError("");
-    const data = await apiPartner(sessionId, { action: "save_profile", ...form });
+    const data = await apiPartner(sessionId, { action: "save_profile", ...form, ...(partnerId ? { partner_id: partnerId } : {}) });
     setSaving(false);
     if (data.error) { setError(data.error); return; }
     setPartner(data.partner);

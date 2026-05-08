@@ -79,7 +79,7 @@ def get_or_create_partner(conn, user_id: int) -> dict | None:
         f"director_name, bank_name, bank_bik, bank_account, bank_corr, "
         f"contact_name, contact_phone, contact_email, ref_code, dadata_raw, "
         f"lawyer_type, lawyer_type_requested, referral_fee_percent, ref_partner_id "
-        f"FROM {SCHEMA}.partners WHERE user_id = %s",
+        f"FROM {SCHEMA}.partners WHERE user_id = %s AND deactivated = FALSE AND ref_code != 'SYSTEM' ORDER BY id ASC LIMIT 1",
         (user_id,),
     )
     row = cur.fetchone()
@@ -138,7 +138,19 @@ def handler(event: dict, context) -> dict:
     # ── GET PROFILE ───────────────────────────────────────────────────────────
     if action == "get_profile":
         conn = get_conn()
-        partner = get_or_create_partner(conn, user["id"])
+        # Если admin запрашивает профиль конкретного партнёра — ищем по partner_id
+        partner_id_req = body.get("partner_id")
+        if is_admin and partner_id_req:
+            cur = conn.cursor()
+            cur.execute(
+                f"SELECT user_id FROM {SCHEMA}.partners WHERE id = %s AND deactivated = FALSE",
+                (int(partner_id_req),),
+            )
+            row = cur.fetchone()
+            target_user_id = row[0] if row else user["id"]
+        else:
+            target_user_id = user["id"]
+        partner = get_or_create_partner(conn, target_user_id)
         conn.close()
         return ok({"partner": partner, "user": user})
 
@@ -146,8 +158,20 @@ def handler(event: dict, context) -> dict:
     if action == "save_profile":
         conn = get_conn()
         cur = conn.cursor()
-        cur.execute(f"SELECT id, ref_code FROM {SCHEMA}.partners WHERE user_id = %s", (user["id"],))
-        existing = cur.fetchone()
+
+        # Если admin редактирует профиль конкретного партнёра — находим его по partner_id
+        partner_id_req = body.get("partner_id")
+        if is_admin and partner_id_req:
+            cur.execute(
+                f"SELECT id, ref_code, user_id FROM {SCHEMA}.partners WHERE id = %s AND deactivated = FALSE",
+                (int(partner_id_req),),
+            )
+            existing = cur.fetchone()
+            save_user_id = existing[2] if existing else user["id"]
+        else:
+            cur.execute(f"SELECT id, ref_code, user_id FROM {SCHEMA}.partners WHERE user_id = %s AND deactivated = FALSE", (user["id"],))
+            existing = cur.fetchone()
+            save_user_id = user["id"]
 
         fields = ["partner_type", "inn", "kpp", "ogrn", "full_name", "short_name",
                   "legal_address", "director_name", "bank_name", "bank_bik",
@@ -171,11 +195,11 @@ def handler(event: dict, context) -> dict:
             cur.execute(
                 f"INSERT INTO {SCHEMA}.partners (user_id, {cols}, dadata_raw, ref_code) "
                 f"VALUES (%s, {placeholders}, %s::jsonb, %s) RETURNING id",
-                [user["id"]] + values + [dadata_json, ref_code],
+                [save_user_id] + values + [dadata_json, ref_code],
             )
 
         conn.commit()
-        partner = get_or_create_partner(conn, user["id"])
+        partner = get_or_create_partner(conn, save_user_id)
         conn.close()
         company = partner.get("short_name") or partner.get("full_name") or "—"
         inn = partner.get("inn") or "—"
