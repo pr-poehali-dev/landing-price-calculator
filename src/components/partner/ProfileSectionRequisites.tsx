@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import Icon from "@/components/ui/icon";
 import { PARTNER_TYPE_LABELS, type PartnerType } from "./types";
-import { Field, DaDropdown, INPUT, inputStyle, inputStyleMissing, type DDSuggestion } from "./ProfileShared";
+import { Field, DaDropdown, INPUT, inputStyle, inputStyleMissing, type DDSuggestion, SUGGEST_FIO, SUGGEST_ADDR, ddFetch } from "./ProfileShared";
 
 interface Props {
   form: Record<string, string>;
@@ -35,7 +35,53 @@ export default function ProfileSectionRequisites({
   const [ndflWarningShown, setNdflWarningShown] = useState(false);
   const [pendingIndividual, setPendingIndividual] = useState(false);
 
+  // DaData: ФИО физлица
+  const [fioSugg, setFioSugg] = useState<DDSuggestion[]>([]);
+  const [fioOpen, setFioOpen] = useState(false);
+  const [fioLoading, setFioLoading] = useState(false);
+  const fioTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // DaData: адрес регистрации физлица
+  const [regAddrSugg, setRegAddrSugg] = useState<DDSuggestion[]>([]);
+  const [regAddrOpen, setRegAddrOpen] = useState(false);
+  const [regAddrLoading, setRegAddrLoading] = useState(false);
+  const regAddrTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const isIndividual = form.partner_type === "individual";
+
+  useEffect(() => {
+    if (!isIndividual) return;
+    if (fioTimer.current) clearTimeout(fioTimer.current);
+    const v = (form.individual_full_name || "").trim();
+    if (!v || v.length < 2) { setFioSugg([]); return; }
+    setFioLoading(true);
+    fioTimer.current = setTimeout(async () => {
+      const s = await ddFetch(SUGGEST_FIO, { query: v, count: 5 });
+      setFioSugg(s); setFioOpen(true); setFioLoading(false);
+    }, 300);
+  }, [form.individual_full_name, isIndividual]);
+
+  useEffect(() => {
+    if (!isIndividual) return;
+    if (regAddrTimer.current) clearTimeout(regAddrTimer.current);
+    const v = (form.individual_registration_address || "").trim();
+    if (!v || v.length < 3) { setRegAddrSugg([]); return; }
+    setRegAddrLoading(true);
+    regAddrTimer.current = setTimeout(async () => {
+      const s = await ddFetch(SUGGEST_ADDR, { query: v, count: 5 });
+      setRegAddrSugg(s); setRegAddrOpen(true); setRegAddrLoading(false);
+    }, 350);
+  }, [form.individual_registration_address, isIndividual]);
+
+  const applyFio = (s: DDSuggestion) => {
+    setForm(prev => ({ ...prev, individual_full_name: s.value }));
+    setFioOpen(false); setFioSugg([]);
+  };
+
+  const applyRegAddr = (s: DDSuggestion) => {
+    setForm(prev => ({ ...prev, individual_registration_address: s.value }));
+    setRegAddrOpen(false); setRegAddrSugg([]);
+  };
 
   const handleTypeChange = (val: PartnerType) => {
     if (val === "individual" && !ndflWarningShown) {
@@ -146,9 +192,14 @@ export default function ProfileSectionRequisites({
 
           <div className="mb-4">
             <Field label="ФИО полностью" required missing={isMissing("individual_full_name")}>
-              <input className={INPUT} style={isMissing("individual_full_name") ? inputStyleMissing : inputStyle}
-                placeholder="Иванов Иван Иванович"
-                value={form.individual_full_name || ""} onChange={set("individual_full_name")} />
+              <div className="relative">
+                <input className={INPUT} style={isMissing("individual_full_name") ? inputStyleMissing : inputStyle}
+                  placeholder="Иванов Иван Иванович"
+                  value={form.individual_full_name || ""} onChange={set("individual_full_name")}
+                  onFocus={() => fioSugg.length > 0 && setFioOpen(true)}
+                  onBlur={() => setTimeout(() => setFioOpen(false), 150)} />
+                <DaDropdown suggestions={fioOpen ? fioSugg : []} onSelect={applyFio} loading={fioLoading} />
+              </div>
             </Field>
           </div>
 
@@ -204,9 +255,9 @@ export default function ProfileSectionRequisites({
                 <input className={INPUT} style={isMissing("individual_registration_address") ? inputStyleMissing : inputStyle}
                   placeholder="г. Москва, ул. Ленина, д. 1, кв. 1"
                   value={form.individual_registration_address || ""} onChange={set("individual_registration_address")}
-                  onFocus={() => addrSugg.length > 0 && setAddrOpen(true)}
-                  onBlur={() => setTimeout(() => setAddrOpen(false), 150)} />
-                <DaDropdown suggestions={addrOpen ? addrSugg : []} onSelect={applyAddr} loading={addrLoading} />
+                  onFocus={() => regAddrSugg.length > 0 && setRegAddrOpen(true)}
+                  onBlur={() => setTimeout(() => setRegAddrOpen(false), 150)} />
+                <DaDropdown suggestions={regAddrOpen ? regAddrSugg : []} onSelect={applyRegAddr} loading={regAddrLoading} />
               </div>
             </Field>
           </div>
