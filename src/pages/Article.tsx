@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Link, useParams, Navigate } from "react-router-dom";
 import { articles } from "@/data/articles";
 import Icon from "@/components/ui/icon";
@@ -5,6 +6,24 @@ import Icon from "@/components/ui/icon";
 export default function Article() {
   const { slug } = useParams<{ slug: string }>();
   const article = articles.find((a) => a.slug === slug);
+
+  useEffect(() => {
+    if (!article) return;
+    const title = article.metaTitle || article.title + " | Legis24";
+    const desc = article.metaDescription || article.excerpt;
+    const kw = article.metaKeywords || "";
+    document.title = title;
+    let metaDesc = document.querySelector('meta[name="description"]');
+    if (!metaDesc) { metaDesc = document.createElement("meta"); (metaDesc as HTMLMetaElement).name = "description"; document.head.appendChild(metaDesc); }
+    (metaDesc as HTMLMetaElement).content = desc;
+    let metaKw = document.querySelector('meta[name="keywords"]');
+    if (!metaKw) { metaKw = document.createElement("meta"); (metaKw as HTMLMetaElement).name = "keywords"; document.head.appendChild(metaKw); }
+    (metaKw as HTMLMetaElement).content = kw;
+    let canonical = document.querySelector('link[rel="canonical"]');
+    if (!canonical) { canonical = document.createElement("link"); (canonical as HTMLLinkElement).rel = "canonical"; document.head.appendChild(canonical); }
+    (canonical as HTMLLinkElement).href = `${window.location.origin}/blog/${article.slug}`;
+    return () => { document.title = "Legis24 — юридические услуги для бизнеса"; };
+  }, [article]);
 
   if (!article) return <Navigate to="/blog" replace />;
 
