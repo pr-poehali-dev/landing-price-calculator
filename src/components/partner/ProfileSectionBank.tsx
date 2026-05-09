@@ -22,7 +22,7 @@ export default function ProfileSectionBank({
       <div className="mb-4">
         <Field label="БИК" missing={isMissing("bank_bik")}>
           <div className="relative">
-            <input className={INPUT} style={isMissing("bank_bik") ? inputStyleMissing : inputStyle}
+            <input id="field-bank_bik" className={INPUT} style={isMissing("bank_bik") ? inputStyleMissing : inputStyle}
               placeholder="044525225 — банк и корр. счёт подтянутся автоматически"
               value={form.bank_bik} onChange={set("bank_bik")}
               onFocus={() => bankSugg.length > 0 && setBankOpen(true)}
@@ -37,7 +37,7 @@ export default function ProfileSectionBank({
           <input className={INPUT} style={inputStyle} placeholder="Заполнится по БИК" value={form.bank_name} onChange={set("bank_name")} />
         </Field>
         <Field label="Расчётный счёт" missing={isMissing("bank_account")}>
-          <input className={INPUT} style={isMissing("bank_account") ? inputStyleMissing : inputStyle}
+          <input id="field-bank_account" className={INPUT} style={isMissing("bank_account") ? inputStyleMissing : inputStyle}
             placeholder="40702810000000000000" value={form.bank_account} onChange={set("bank_account")} />
         </Field>
         <Field label="Корр. счёт">

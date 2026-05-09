@@ -7,15 +7,17 @@ interface Props {
   disabled?: boolean;
   className?: string;
   style?: React.CSSProperties;
+  id?: string;
 }
 
-export default function PhoneInput({ value, onChange, placeholder = "+7 (___) ___-__-__", disabled, className, style }: Props) {
+export default function PhoneInput({ value, onChange, placeholder = "+7 (___) ___-__-__", disabled, className, style, id }: Props) {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     onChange(formatPhone(e.target.value));
   };
 
   return (
     <input
+      id={id}
       type="tel"
       value={value}
       onChange={handleChange}

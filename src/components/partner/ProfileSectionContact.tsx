@@ -26,7 +26,7 @@ export default function ProfileSectionContact({
         <div className="mb-4">
           <Field label="ФИО" missing={isMissing("contact_name")}>
             <div className="relative">
-              <input className={INPUT} style={isMissing("contact_name") ? inputStyleMissing : inputStyle}
+              <input id="field-contact_name" className={INPUT} style={isMissing("contact_name") ? inputStyleMissing : inputStyle}
                 placeholder="Петров Пётр Петрович"
                 value={form.contact_name} onChange={set("contact_name")}
                 onFocus={() => ctcSugg.length > 0 && setCtcOpen(true)}
@@ -37,12 +37,12 @@ export default function ProfileSectionContact({
         </div>
         <div className="grid sm:grid-cols-2 gap-4">
           <Field label="Телефон" missing={isMissing("contact_phone")}>
-            <PhoneInput className={INPUT} style={isMissing("contact_phone") ? inputStyleMissing : inputStyle}
+            <PhoneInput id="field-contact_phone" className={INPUT} style={isMissing("contact_phone") ? inputStyleMissing : inputStyle}
               value={form.contact_phone} onChange={v => setForm(prev => ({ ...prev, contact_phone: v }))} />
           </Field>
           <div>
             <Field label="Email" missing={isMissing("contact_email")}>
-              <EmailInput className={INPUT} style={isMissing("contact_email") ? inputStyleMissing : inputStyle}
+              <EmailInput id="field-contact_email" className={INPUT} style={isMissing("contact_email") ? inputStyleMissing : inputStyle}
                 value={form.contact_email} onChange={v => setForm(prev => ({ ...prev, contact_email: v }))} />
             </Field>
           </div>

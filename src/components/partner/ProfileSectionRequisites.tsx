@@ -257,7 +257,7 @@ export default function ProfileSectionRequisites({
 
             <Field label="ФИО полностью" required missing={isMissing("individual_full_name")}>
               <div className="relative">
-                <input className={INPUT} style={isMissing("individual_full_name") ? inputStyleMissing : inputStyle}
+                <input id="field-individual_full_name" className={INPUT} style={isMissing("individual_full_name") ? inputStyleMissing : inputStyle}
                   placeholder="Иванов Иван Иванович"
                   value={form.individual_full_name || ""} onChange={set("individual_full_name")}
                   onFocus={() => fioSugg.length > 0 && setFioOpen(true)}
@@ -268,12 +268,12 @@ export default function ProfileSectionRequisites({
 
             <div className="grid sm:grid-cols-2 gap-4">
               <Field label="Дата рождения" required missing={isMissing("individual_birth_date")}>
-                <input className={INPUT} style={isMissing("individual_birth_date") ? inputStyleMissing : inputStyle} type="date"
+                <input id="field-individual_birth_date" className={INPUT} style={isMissing("individual_birth_date") ? inputStyleMissing : inputStyle} type="date"
                   value={form.individual_birth_date || ""} onChange={set("individual_birth_date")} />
               </Field>
               <Field label="ИНН физлица" required missing={isMissing("inn")}>
                 <div className="relative">
-                  <input className={INPUT} style={isMissing("inn") ? inputStyleMissing : inputStyle}
+                  <input id="field-inn" className={INPUT} style={isMissing("inn") ? inputStyleMissing : inputStyle}
                     placeholder="12 цифр"
                     value={form.inn} onChange={set("inn")}
                     onFocus={() => partySugg.length > 0 && setPartyOpen(true)}
@@ -285,7 +285,7 @@ export default function ProfileSectionRequisites({
 
             <Field label="Адрес регистрации" required missing={isMissing("individual_registration_address")}>
               <div className="relative">
-                <input className={INPUT} style={isMissing("individual_registration_address") ? inputStyleMissing : inputStyle}
+                <input id="field-individual_registration_address" className={INPUT} style={isMissing("individual_registration_address") ? inputStyleMissing : inputStyle}
                   placeholder="г. Москва, ул. Ленина, д. 1, кв. 1"
                   value={form.individual_registration_address || ""} onChange={set("individual_registration_address")}
                   onFocus={() => regAddrSugg.length > 0 && setRegAddrOpen(true)}
@@ -304,16 +304,16 @@ export default function ProfileSectionRequisites({
 
             <div className="grid sm:grid-cols-3 gap-4">
               <Field label="Серия паспорта" required missing={isMissing("individual_passport_series")}>
-                <input className={INPUT} style={isMissing("individual_passport_series") ? inputStyleMissing : inputStyle} placeholder="1234"
+                <input id="field-individual_passport_series" className={INPUT} style={isMissing("individual_passport_series") ? inputStyleMissing : inputStyle} placeholder="1234"
                   value={form.individual_passport_series || ""} onChange={set("individual_passport_series")} />
               </Field>
               <Field label="Номер паспорта" required missing={isMissing("individual_passport_number")}>
-                <input className={INPUT} style={isMissing("individual_passport_number") ? inputStyleMissing : inputStyle} placeholder="567890"
+                <input id="field-individual_passport_number" className={INPUT} style={isMissing("individual_passport_number") ? inputStyleMissing : inputStyle} placeholder="567890"
                   value={form.individual_passport_number || ""} onChange={set("individual_passport_number")} />
               </Field>
               <Field label="Код подразделения" required missing={isMissing("individual_passport_code")}>
                 <div className="relative">
-                  <input className={INPUT} style={isMissing("individual_passport_code") ? inputStyleMissing : inputStyle} placeholder="770-001"
+                  <input id="field-individual_passport_code" className={INPUT} style={isMissing("individual_passport_code") ? inputStyleMissing : inputStyle} placeholder="770-001"
                     value={form.individual_passport_code || ""} onChange={set("individual_passport_code")}
                     onFocus={() => fmsCodeSugg.length > 0 && setFmsCodeOpen(true)}
                     onBlur={() => setTimeout(() => setFmsCodeOpen(false), 150)} />
@@ -324,7 +324,7 @@ export default function ProfileSectionRequisites({
 
             <Field label="Кем выдан" required missing={isMissing("individual_passport_issued_by")}>
               <div className="relative">
-                <input className={INPUT} style={isMissing("individual_passport_issued_by") ? inputStyleMissing : inputStyle} placeholder="УМВД России по г. Москве"
+                <input id="field-individual_passport_issued_by" className={INPUT} style={isMissing("individual_passport_issued_by") ? inputStyleMissing : inputStyle} placeholder="УМВД России по г. Москве"
                   value={form.individual_passport_issued_by || ""} onChange={set("individual_passport_issued_by")}
                   onFocus={() => fmsSugg.length > 0 && setFmsOpen(true)}
                   onBlur={() => setTimeout(() => setFmsOpen(false), 150)} />
@@ -334,7 +334,7 @@ export default function ProfileSectionRequisites({
 
             <div className="grid sm:grid-cols-2 gap-4">
               <Field label="Дата выдачи" required missing={isMissing("individual_passport_issued_date")}>
-                <input className={INPUT} style={isMissing("individual_passport_issued_date") ? inputStyleMissing : inputStyle} type="date"
+                <input id="field-individual_passport_issued_date" className={INPUT} style={isMissing("individual_passport_issued_date") ? inputStyleMissing : inputStyle} type="date"
                   value={form.individual_passport_issued_date || ""} onChange={set("individual_passport_issued_date")} />
               </Field>
               <Field label="СНИЛС">
@@ -352,7 +352,7 @@ export default function ProfileSectionRequisites({
           <div className="mb-4">
             <Field label="ИНН" required missing={isMissing("inn")}>
               <div className="relative">
-                <input className={INPUT} style={isMissing("inn") ? inputStyleMissing : inputStyle}
+                <input id="field-inn" className={INPUT} style={isMissing("inn") ? inputStyleMissing : inputStyle}
                   placeholder="Введите ИНН — данные подтянутся автоматически"
                   value={form.inn} onChange={set("inn")}
                   onFocus={() => partySugg.length > 0 && setPartyOpen(true)}
@@ -375,7 +375,7 @@ export default function ProfileSectionRequisites({
 
           <div className="grid sm:grid-cols-2 gap-4 mt-4">
             <Field label="Полное наименование" missing={isMissing("full_name")}>
-              <input className={INPUT} style={isMissing("full_name") ? inputStyleMissing : inputStyle}
+              <input id="field-full_name" className={INPUT} style={isMissing("full_name") ? inputStyleMissing : inputStyle}
                 placeholder="ООО «Ромашка»" value={form.full_name} onChange={set("full_name")} />
             </Field>
             <Field label="Краткое наименование">
@@ -386,7 +386,7 @@ export default function ProfileSectionRequisites({
           <div className="mt-4">
             <Field label="Юридический адрес" missing={isMissing("legal_address")}>
               <div className="relative">
-                <input className={INPUT} style={isMissing("legal_address") ? inputStyleMissing : inputStyle}
+                <input id="field-legal_address" className={INPUT} style={isMissing("legal_address") ? inputStyleMissing : inputStyle}
                   placeholder="г. Москва, ул. Ленина, д. 1"
                   value={form.legal_address} onChange={set("legal_address")}
                   onFocus={() => addrSugg.length > 0 && setAddrOpen(true)}
@@ -399,7 +399,7 @@ export default function ProfileSectionRequisites({
           <div className="mt-4">
             <Field label="Руководитель / ФИО ИП" missing={isMissing("director_name")}>
               <div className="relative">
-                <input className={INPUT} style={isMissing("director_name") ? inputStyleMissing : inputStyle}
+                <input id="field-director_name" className={INPUT} style={isMissing("director_name") ? inputStyleMissing : inputStyle}
                   placeholder="Иванов Иван Иванович"
                   value={form.director_name} onChange={set("director_name")}
                   onFocus={() => dirSugg.length > 0 && setDirOpen(true)}

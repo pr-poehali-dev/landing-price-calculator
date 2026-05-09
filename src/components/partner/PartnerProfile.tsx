@@ -223,6 +223,13 @@ export default function PartnerProfile({ sessionId, onSaved, isAdmin = false, pa
   const missingFields = activeRequiredFields.filter(rf => !form[rf.key]);
   const isMissing = (key: string) => !isAdmin && showMissing && !form[key] && activeRequiredFields.some(rf => rf.key === key);
 
+  const scrollToFirstMissing = () => {
+    const first = missingFields[0];
+    if (!first) return;
+    const el = document.getElementById(`field-${first.key}`);
+    if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+  };
+
   if (loading) return (
     <div className="flex items-center justify-center py-16">
       <Icon name="LoaderCircle" size={28} className="animate-spin" style={{ color: "var(--blue)" }} />
@@ -244,9 +251,17 @@ export default function PartnerProfile({ sessionId, onSaved, isAdmin = false, pa
       ) : !isAdmin && (
         <div className="rounded-xl px-5 py-4 flex items-start gap-3" style={{ background: "rgba(234,179,8,0.06)", border: "1px solid rgba(234,179,8,0.25)" }}>
           <Icon name="Lock" size={16} className="flex-shrink-0 mt-0.5" style={{ color: "#ca8a04" }} />
-          <div>
+          <div className="flex-1">
             <p className="text-sm font-semibold" style={{ color: "#92400e" }}>Реферальная ссылка появится после заполнения профиля</p>
-            <p className="text-xs mt-0.5" style={{ color: "#a16207" }}>Заполните все обязательные поля и сохраните профиль — ссылка сгенерируется автоматически.</p>
+            <p className="text-xs mt-0.5 mb-2" style={{ color: "#a16207" }}>Заполните все обязательные поля и сохраните профиль — ссылка сгенерируется автоматически.</p>
+            {missingFields.length > 0 && (
+              <button type="button" onClick={scrollToFirstMissing}
+                className="text-xs font-semibold flex items-center gap-1 underline underline-offset-2"
+                style={{ color: "#92400e" }}>
+                <Icon name="ArrowDown" size={12} />
+                Перейти к первому незаполненному полю
+              </button>
+            )}
           </div>
         </div>
       )}

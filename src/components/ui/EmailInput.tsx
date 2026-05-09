@@ -24,9 +24,10 @@ interface Props {
   disabled?: boolean;
   className?: string;
   style?: React.CSSProperties;
+  id?: string;
 }
 
-export default function EmailInput({ value, onChange, placeholder = "example@mail.ru", disabled, className, style }: Props) {
+export default function EmailInput({ value, onChange, placeholder = "example@mail.ru", disabled, className, style, id }: Props) {
   const [open, setOpen] = useState(false);
   const [ddSugg, setDdSugg] = useState<string[]>([]);
   const [localSugg, setLocalSugg] = useState<string[]>([]);
@@ -59,6 +60,7 @@ export default function EmailInput({ value, onChange, placeholder = "example@mai
   return (
     <div className="relative">
       <input
+        id={id}
         type="email"
         value={value}
         onChange={e => onChange(e.target.value)}
