@@ -138,6 +138,20 @@ export default function PartnerReferral({ sessionId, partnerId }: Props) {
         </p>
       </div>
 
+      {/* Promo channel */}
+      <a href="https://t.me/+AGCUWXbH0Qs2MWUy" target="_blank" rel="noopener noreferrer"
+        className="flex items-center gap-4 rounded-2xl p-5 transition-opacity hover:opacity-80"
+        style={{ background: "linear-gradient(135deg, #0088cc18, #0088cc08)", border: "1px solid #0088cc30", textDecoration: "none" }}>
+        <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: "#0088cc" }}>
+          <Icon name="Send" size={18} style={{ color: "#fff" }} />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-semibold mb-0.5" style={{ color: "var(--navy)" }}>Промо-материалы в Telegram</p>
+          <p className="text-xs" style={{ color: "var(--text-muted)" }}>Баннеры, скрипты и готовые тексты для привлечения клиентов</p>
+        </div>
+        <Icon name="ExternalLink" size={15} style={{ color: "#0088cc" }} />
+      </a>
+
       {/* QR block */}
       <div className="rounded-2xl p-5" style={{ background: "var(--bg)", border: "1px solid var(--border-c)" }}>
         <p className="text-xs font-semibold uppercase tracking-wide mb-4" style={{ color: "var(--text-muted)" }}>QR-код</p>
