@@ -4,6 +4,7 @@ import { DOC_CATEGORIES, fmtDate, fmtMoney, fmtFileSize, type ClientDetail, type
 import { Section, Row, type ClientService, type AvailableService } from "./clientCardShared";
 
 interface Props {
+  isAdmin: boolean;
   client: ClientDetail;
   docs: Doc[];
   comments: Comment[];
@@ -34,7 +35,7 @@ interface Props {
 }
 
 export default function ClientCardInfo({
-  client, docs, comments, commentText, sendingComment,
+  isAdmin, client, docs, comments, commentText, sendingComment,
   uploadCat, uploading, ddLoading, ddData,
   clientServices, allServices, addingService, selectedServiceId,
   serviceDealAmount, savingService, removingServiceId,
@@ -263,18 +264,20 @@ export default function ClientCardInfo({
         )}
       </Section>
 
-      {/* Финансы сделки */}
-      <Section title="Финансовая информация" icon="DollarSign">
-        <Row label="Сумма сделки" value={fmtMoney(client.deal_amount)} />
-        <Row label="Вознаграждение" value={fmtMoney(client.partner_reward)} />
-        <div className="py-2">
-          <span className="block text-xs mb-0.5" style={{ color: "var(--text-muted)" }}>Выплата</span>
-          <span className="text-sm font-semibold"
-            style={{ color: client.reward_paid ? "var(--success)" : "#d97706" }}>
-            {client.reward_paid ? "Выплачено" : "Ожидается"}
-          </span>
-        </div>
-      </Section>
+      {/* Финансы сделки — только для партнёра/администратора */}
+      {isAdmin && (
+        <Section title="Финансовая информация" icon="DollarSign">
+          <Row label="Сумма сделки" value={fmtMoney(client.deal_amount)} />
+          <Row label="Вознаграждение" value={fmtMoney(client.partner_reward)} />
+          <div className="py-2">
+            <span className="block text-xs mb-0.5" style={{ color: "var(--text-muted)" }}>Выплата</span>
+            <span className="text-sm font-semibold"
+              style={{ color: client.reward_paid ? "var(--success)" : "#d97706" }}>
+              {client.reward_paid ? "Выплачено" : "Ожидается"}
+            </span>
+          </div>
+        </Section>
+      )}
 
       {/* Документы */}
       <Section title="Документы" icon="Paperclip">

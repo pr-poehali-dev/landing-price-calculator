@@ -210,6 +210,7 @@ export default function ClientCard({ sessionId, clientId, isAdmin, onBack }: Pro
 
       <div className="grid lg:grid-cols-3 gap-4 md:gap-5">
         <ClientCardInfo
+          isAdmin={isAdmin}
           client={client}
           docs={docs}
           comments={comments}
