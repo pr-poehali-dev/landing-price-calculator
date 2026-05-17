@@ -1,4 +1,5 @@
 {
+  "client-cabinet": "https://functions.poehali.dev/0d8f02e0-4a86-4325-8c43-a981aa1a2aa3",
   "auth-email-auth": "https://functions.poehali.dev/99e239ab-92c4-4a98-9d7d-a594f763195d",
   "telegram-bot-telegram-auth": "https://functions.poehali.dev/0b8f7b5e-c715-498f-974f-9afcdaf17451",
   "telegram-bot-telegram-bot": "https://functions.poehali.dev/ff07ee89-c19d-423c-84c0-cc7b8fdeef4f",
